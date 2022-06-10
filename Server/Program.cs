@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Threading.Channels;
 using Core;
 
 namespace Server
@@ -12,6 +13,7 @@ namespace Server
         {
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 7777);
 
+            Console.WriteLine("HI");
             while (true)
             {
             }
