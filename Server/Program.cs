@@ -11,6 +11,7 @@ namespace Server
 
         static void Main(string[] args)
         {
+            RoomManager.Instance.Add(1);
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 7777);
 
             _listener.Init(endPoint, () => SessionManager.Instance.Generate());

@@ -3,12 +3,17 @@ using System.Net;
 using Core;
 using Google.Protobuf;
 using Google.Protobuf.Protocol;
+using Server.Game;
+using Server.Game.Object;
+
+// ReSharper disable All
 
 namespace Server
 {
     public class ClientSession : PacketSession
     {
         public int SessionId { get; set; }
+        public Player Me { get; set; }
 
         public void Send(IMessage packet)
         {
@@ -26,9 +31,20 @@ namespace Server
         {
             Console.WriteLine($"OnConnected: {endPoint}");
 
-            S_Chat chat = new S_Chat();
-            chat.Context = "안녕하세요";
-            Send(chat);
+            Me = ObjectManager.Instance.Add();
+            GameRoom room = RoomManager.Instance.Find(1);
+
+            {
+                Pos pos = room.Stage.FindStartPos();
+
+                Me.Session = this;
+                Me.Name = $"Player_{Me.ObjectId}";
+                Me.PosInfo.PosY = pos.Y;
+                Me.PosInfo.PosZ = pos.Z;
+                Me.PosInfo.PosX = pos.X;
+            }
+
+            room.EnterRoom(Me);
         }
 
         public override void OnSend(int numOfBytes)

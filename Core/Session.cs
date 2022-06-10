@@ -104,7 +104,7 @@ namespace Core
             if (Interlocked.Exchange(ref _disconnected, 1) == 1)
                 return;
 
-            OnDisconnected(_recvArgs.RemoteEndPoint);
+            OnDisconnected(_socket.RemoteEndPoint);
             _socket.Shutdown(SocketShutdown.Both);
             _socket.Close();
             Clear();
