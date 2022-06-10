@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{3D5129E9-08F2-4A1A-B319-C84C389D100C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{81CAFF38-A2C6-4D82-8E42-7000D1CF34E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{C6E9FECF-E134-4687-97C7-12EDFD0A485C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PacketGenerator", "PacketGenerator\PacketGenerator.csproj", "{FC458A88-6760-4964-A482-B3049E5E33FF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3D5129E9-08F2-4A1A-B319-C84C389D100C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D5129E9-08F2-4A1A-B319-C84C389D100C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D5129E9-08F2-4A1A-B319-C84C389D100C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D5129E9-08F2-4A1A-B319-C84C389D100C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81CAFF38-A2C6-4D82-8E42-7000D1CF34E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81CAFF38-A2C6-4D82-8E42-7000D1CF34E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81CAFF38-A2C6-4D82-8E42-7000D1CF34E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81CAFF38-A2C6-4D82-8E42-7000D1CF34E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC458A88-6760-4964-A482-B3049E5E33FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC458A88-6760-4964-A482-B3049E5E33FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC458A88-6760-4964-A482-B3049E5E33FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC458A88-6760-4964-A482-B3049E5E33FF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FC458A88-6760-4964-A482-B3049E5E33FF} = {C6E9FECF-E134-4687-97C7-12EDFD0A485C}
+	EndGlobalSection
+EndGlobal
