@@ -40,6 +40,7 @@ namespace Core
             {
                 Session session = _sessionFactory.Invoke();
                 session.Start(args.AcceptSocket);
+                session.OnConnected(args.AcceptSocket.RemoteEndPoint);
             }
             else
             {
