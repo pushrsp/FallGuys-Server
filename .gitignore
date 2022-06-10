@@ -5,6 +5,8 @@
 
 .idea
 bin
+global.json
+.DS_Store
 
 # User-specific files
 *.rsuser
