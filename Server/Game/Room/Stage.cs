@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading.Channels;
 using Google.Protobuf.Protocol;
 
 namespace Server.Game
@@ -42,22 +45,38 @@ namespace Server.Game
         {
             foreach (Pos pos in _startRespawn)
             {
-                if (_players[pos.Y, pos.Z, pos.X] == null)
+                if (_players[pos.Y - MinY, MaxZ - pos.Z, pos.X - MinX] == null)
                     return pos;
             }
 
             return null;
         }
 
-        public void ApplyMove(Player player)
+        bool IsValidate(PositionInfo posInfo)
         {
-            if (player.Room == null)
-                return;
-            if (player.Session == null)
-                return;
+            if (posInfo.PosX < MinX || posInfo.PosX > MaxX)
+                return false;
+            if (posInfo.PosZ < MinZ || posInfo.PosZ > MaxZ)
+                return false;
+            if (posInfo.PosY < MinY || posInfo.PosY > MaxY)
+                return false;
 
+            return true;
+        }
+
+        public Tuple<int, int, int> ApplyMove(Player player)
+        {
             PositionInfo posInfo = player.PosInfo;
-            _players[posInfo.PosY, posInfo.PosZ, posInfo.PosX] = player;
+            if (!IsValidate(posInfo))
+                return null;
+
+            int y = (int) posInfo.PosY - MinY;
+            int z = MaxZ - (int) posInfo.PosZ;
+            int x = (int) posInfo.PosX - MinX;
+
+            _players[y, z, x] = player;
+
+            return new Tuple<int, int, int>(y, z, x);
         }
 
         public void LoadStage(int stageId, string pathPrefix = "../../../../../Shared/StageData")
@@ -97,7 +116,7 @@ namespace Server.Game
 
                         if (line[x] == '8')
                         {
-                            _startRespawn.Add(new Pos(y, z, x));
+                            _startRespawn.Add(new Pos(y, MaxZ - z, MinX + x + 1));
                         }
                     }
                 }

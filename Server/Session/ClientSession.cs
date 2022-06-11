@@ -42,6 +42,9 @@ namespace Server
                 Me.PosInfo.PosY = pos.Y;
                 Me.PosInfo.PosZ = pos.Z;
                 Me.PosInfo.PosX = pos.X;
+                Me.Info.State = PlayerState.Idle;
+                Me.Info.PlayerSelect = 1;
+                Me.Info.Speed = 6.0f;
             }
 
             room.EnterRoom(Me);
@@ -57,6 +60,7 @@ namespace Server
 
         public override void OnRecvPacket(ArraySegment<byte> buffer)
         {
+            PacketManager.Instance.OnRecvPacket(this, buffer);
         }
     }
 }

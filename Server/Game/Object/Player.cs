@@ -6,12 +6,24 @@ namespace Server
     {
         public ClientSession Session { get; set; }
         public GameRoom Room { get; set; }
-        private PlayerInfo _info = new PlayerInfo {PosInfo = new PositionInfo()};
+        private PlayerInfo _info = new PlayerInfo {PosInfo = new PositionInfo(), MoveDir = new PositionInfo()};
 
         public PlayerInfo Info
         {
             get { return _info; }
             set { _info = value; }
+        }
+
+        public PlayerState State
+        {
+            get { return Info.State; }
+            set { Info.State = value; }
+        }
+
+        public float Speed
+        {
+            get { return Info.Speed; }
+            set { Info.Speed = value; }
         }
 
         public string Name
@@ -29,7 +41,23 @@ namespace Server
         public PositionInfo PosInfo
         {
             get { return Info.PosInfo; }
-            set { Info.PosInfo = value; }
+            set
+            {
+                Info.PosInfo.PosX = value.PosX;
+                Info.PosInfo.PosY = value.PosY;
+                Info.PosInfo.PosZ = value.PosZ;
+            }
+        }
+
+        public PositionInfo MoveDir
+        {
+            get { return Info.MoveDir; }
+            set
+            {
+                Info.MoveDir.PosX = value.PosX;
+                Info.MoveDir.PosY = value.PosY;
+                Info.MoveDir.PosZ = value.PosZ;
+            }
         }
     }
 }
