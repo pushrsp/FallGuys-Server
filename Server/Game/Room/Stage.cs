@@ -64,6 +64,18 @@ namespace Server.Game
             return true;
         }
 
+        public void ApplyLeave(PositionInfo posInfo)
+        {
+            if (!IsValidate(posInfo))
+                return;
+
+            int y = (int) posInfo.PosY - MinY;
+            int z = MaxZ - (int) posInfo.PosZ;
+            int x = (int) posInfo.PosX - MinX;
+
+            _players[y, z, x] = null;
+        }
+
         public Tuple<int, int, int> ApplyMove(Player player)
         {
             PositionInfo posInfo = player.PosInfo;

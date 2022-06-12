@@ -56,6 +56,12 @@ namespace Server
 
         public override void OnDisconnected(EndPoint endPoint)
         {
+            GameRoom room = RoomManager.Instance.Find(1);
+            room.LeaveGame(Me.ObjectId);
+
+            SessionManager.Instance.Remove(this);
+
+            Console.WriteLine($"OnDisconnected: {endPoint}");
         }
 
         public override void OnRecvPacket(ArraySegment<byte> buffer)

@@ -95,6 +95,37 @@ namespace Server
             Broadcast(resMovePacket);
         }
 
+        public void LeaveGame(int objectId)
+        {
+            lock (_lock)
+            {
+                Player player;
+                if (_players.TryGetValue(objectId, out player) == false)
+                    return;
+
+                Stage.ApplyLeave(player.PosInfo);
+                player.Room = null;
+
+                //본인 전송
+                {
+                    S_LeaveGame leaveGame = new S_LeaveGame();
+                    player.Session.Send(leaveGame);
+                }
+
+                //타인 전송
+                {
+                    S_Despawn despawn = new S_Despawn();
+                    despawn.PlayerId.Add(player.ObjectId);
+
+                    foreach (Player p in _players.Values)
+                    {
+                        if (p.ObjectId != objectId)
+                            p.Session.Send(despawn);
+                    }
+                }
+            }
+        }
+
         public void Broadcast(IMessage packet)
         {
             lock (_lock)
