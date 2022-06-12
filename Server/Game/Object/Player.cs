@@ -1,4 +1,5 @@
 using Google.Protobuf.Protocol;
+using Server.Game;
 
 namespace Server
 {
@@ -47,6 +48,11 @@ namespace Server
                 Info.PosInfo.PosY = value.PosY;
                 Info.PosInfo.PosZ = value.PosZ;
             }
+        }
+
+        public Vector3 PosInfoVec
+        {
+            get => new Vector3(PosInfo.PosX, PosInfo.PosY, PosInfo.PosZ);
         }
 
         public PositionInfo MoveDir

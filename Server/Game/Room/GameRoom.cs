@@ -67,32 +67,43 @@ namespace Server
             if (player == null)
                 return;
 
-            PositionInfo dest = movePacket.PosInfo;
-            PositionInfo dir = movePacket.MoveDir;
-
-            player.PosInfo = dest;
-            player.MoveDir = dir;
-            player.State = movePacket.State;
-
-            S_Move resMovePacket = new S_Move
+            lock (_lock)
             {
-                PlayerInfo = new PlayerInfo
+                PositionInfo dest = movePacket.PosInfo;
+                PositionInfo dir = movePacket.MoveDir;
+
+                int canGo = Stage.CanGo(dest);
+                if (canGo == -1)
+                    return;
+                //TODO 도착
+                if (canGo == 3)
+                    return;
+
+                Stage.ApplyMove(player, dest);
+                player.PosInfo = dest;
+                player.MoveDir = dir;
+                player.State = movePacket.State;
+
+                S_Move resMovePacket = new S_Move
                 {
-                    PosInfo = new PositionInfo(),
-                    MoveDir = new PositionInfo()
+                    PlayerInfo = new PlayerInfo
+                    {
+                        PosInfo = new PositionInfo(),
+                        MoveDir = new PositionInfo()
+                    }
+                };
+
+                PlayerInfo info = resMovePacket.PlayerInfo;
+                {
+                    info.ObjectId = player.ObjectId;
+                    info.State = player.State;
+                    info.PosInfo = player.PosInfo;
+                    info.MoveDir = player.MoveDir;
+                    info.Speed = player.Speed;
                 }
-            };
 
-            PlayerInfo info = resMovePacket.PlayerInfo;
-            {
-                info.ObjectId = player.ObjectId;
-                info.State = player.State;
-                info.PosInfo = player.PosInfo;
-                info.MoveDir = player.MoveDir;
-                info.Speed = player.Speed;
+                Broadcast(resMovePacket);
             }
-
-            Broadcast(resMovePacket);
         }
 
         public void LeaveGame(int objectId)

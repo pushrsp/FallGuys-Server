@@ -7,6 +7,88 @@ using Google.Protobuf.Protocol;
 
 namespace Server.Game
 {
+    public struct Vector3Int
+    {
+        public int y;
+        public int z;
+        public int x;
+
+        public Vector3Int(int x, int y, int z)
+        {
+            this.y = y;
+            this.z = z;
+            this.x = x;
+        }
+
+        public static Vector3Int RoundToInt(Vector3 pos)
+        {
+            return new Vector3Int((int) MathF.Round(pos.x + 0.1f, 0),
+                (int) MathF.Round(pos.y + 0.1f, 0),
+                (int) MathF.Round(pos.z + 0.1f, 0));
+        }
+
+        public static Vector3Int RoundToInt(float x, float y, float z)
+        {
+            return new Vector3Int((int) MathF.Round(x + 0.1f, 0),
+                (int) MathF.Round(y + 0.1f, 0),
+                (int) MathF.Round(z + 0.1f, 0));
+        }
+    }
+
+    public struct Vector3
+    {
+        public float y;
+        public float z;
+        public float x;
+
+        public Vector3(float x, float y, float z)
+        {
+            this.y = y;
+            this.z = z;
+            this.x = x;
+        }
+
+        public static Vector3 up
+        {
+            get => new Vector3(0, 1, 0);
+        }
+
+        public static Vector3 down
+        {
+            get => new Vector3(0, -1, 0);
+        }
+
+        public static Vector3 left
+        {
+            get => new Vector3(-1, 0, 0);
+        }
+
+        public static Vector3 right
+        {
+            get => new Vector3(1, 0, 0);
+        }
+
+        public static Vector3 operator +(Vector3 a, Vector3 b)
+        {
+            return new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+        }
+
+        public static Vector3 operator -(Vector3 a, Vector3 b)
+        {
+            return new Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+        }
+
+        public float magnitude
+        {
+            get { return MathF.Sqrt(sqrMagnitude); }
+        }
+
+        public float sqrMagnitude
+        {
+            get { return x * x + y * y + z * z; }
+        }
+    }
+
     public class Pos
     {
         public Pos(int y, int z, int x)
@@ -64,31 +146,87 @@ namespace Server.Game
             return true;
         }
 
+        public bool HitPlayer(PositionInfo destPos, int objectId)
+        {
+            if (!IsValidate(destPos))
+                return false;
+
+            Tuple<int, int, int> dest = GetPos(destPos);
+            if (_players[dest.Item1, dest.Item2, dest.Item3] != null)
+            {
+                if (_players[dest.Item1, dest.Item2, dest.Item3].ObjectId != objectId)
+                    return true;
+            }
+
+            return false;
+        }
+
         public void ApplyLeave(PositionInfo posInfo)
         {
             if (!IsValidate(posInfo))
                 return;
 
-            int y = (int) posInfo.PosY - MinY;
-            int z = MaxZ - (int) posInfo.PosZ;
-            int x = (int) posInfo.PosX - MinX;
+            Tuple<int, int, int> pos = GetPos(posInfo);
 
-            _players[y, z, x] = null;
+            _players[pos.Item1, pos.Item2, pos.Item3] = null;
         }
 
-        public Tuple<int, int, int> ApplyMove(Player player)
+        public void ApplyMove(Player player)
         {
             PositionInfo posInfo = player.PosInfo;
             if (!IsValidate(posInfo))
-                return null;
+                return;
 
-            int y = (int) posInfo.PosY - MinY;
-            int z = MaxZ - (int) posInfo.PosZ;
-            int x = (int) posInfo.PosX - MinX;
+            Tuple<int, int, int> pos = GetPos(posInfo);
 
-            _players[y, z, x] = player;
+            _players[pos.Item1, pos.Item2, pos.Item3] = player;
+        }
+
+        public void ApplyMove(Player player, PositionInfo destPos)
+        {
+            Tuple<int, int, int> source = GetPos(player.PosInfo);
+            _players[source.Item1, source.Item2, source.Item3] = null;
+
+            Tuple<int, int, int> dest = GetPos(destPos);
+            _players[dest.Item1, dest.Item2, dest.Item3] = player;
+        }
+
+        public Tuple<int, int, int> GetPos(PositionInfo posInfo)
+        {
+            Vector3Int pos = Vector3Int.RoundToInt(posInfo.PosX, posInfo.PosY, posInfo.PosZ);
+            int y = pos.y - MinY;
+            int z = MaxZ - pos.z;
+            int x = pos.x - MinX;
 
             return new Tuple<int, int, int>(y, z, x);
+        }
+
+        public int CanGo(PositionInfo posInfo)
+        {
+            if (!IsValidate(posInfo))
+                return -1;
+
+            Tuple<int, int, int> pos = GetPos(posInfo);
+
+            switch (_collision[pos.Item1, pos.Item2, pos.Item3])
+            {
+                case '0':
+                    return 0;
+                case '3':
+                    return 3;
+                case '4':
+                    return -1;
+                case '5':
+                    return -1;
+                case '6':
+                    return 0;
+                case '7':
+                    return 0;
+                case '8':
+                    return 0;
+                default:
+                    return -1;
+            }
         }
 
         public void LoadStage(int stageId, string pathPrefix = "../../../../../Shared/StageData")
