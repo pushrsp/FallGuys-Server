@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Channels;
 using Google.Protobuf.Protocol;
+using Server.Game.Object;
 
 namespace Server.Game
 {
@@ -263,6 +264,9 @@ namespace Server.Game
                     for (int x = 0; x < XCount; x++)
                     {
                         _collision[y, z, x] = line[x];
+
+                        if (line[x] == '7')
+                            RoomManager.Instance.Find(1).AddRotateObs();
 
                         if (line[x] == '8')
                         {

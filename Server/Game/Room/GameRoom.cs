@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using Server.Game;
+using Server.Game.Object;
 
 namespace Server
 {
@@ -13,10 +14,32 @@ namespace Server
 
         private object _lock = new object();
         private Dictionary<int, Player> _players = new Dictionary<int, Player>();
+        private List<RotateObs> _rotateObs = new List<RotateObs>();
 
         public void Init(int stageId)
         {
             Stage.LoadStage(stageId);
+        }
+
+        public void AddRotateObs()
+        {
+            if (_rotateObs.Count > 0)
+                return;
+
+            RotateObs obs = new RotateObs();
+            obs.Room = this;
+            obs.Speed = 40.0f;
+
+            _rotateObs.Add(obs);
+        }
+
+        public void Update()
+        {
+            if (_players.Count == 0)
+                return;
+
+            foreach (RotateObs rotateObs in _rotateObs)
+                rotateObs.Update();
         }
 
         public void EnterRoom(Player player)

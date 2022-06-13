@@ -13,13 +13,14 @@ namespace Server
         public GameRoom Add(int mapId)
         {
             GameRoom room = new GameRoom();
-            room.Init(1);
 
             lock (_lock)
             {
                 room.RoomId = _roomId++;
                 _rooms.Add(room.RoomId, room);
             }
+
+            room.Init(mapId);
 
             return room;
         }
