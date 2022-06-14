@@ -15,6 +15,7 @@ namespace Server
         private object _lock = new object();
         private Dictionary<int, Player> _players = new Dictionary<int, Player>();
         private List<RotateObs> _rotateObs = new List<RotateObs>();
+        private List<WheelObs> _wheelObs = new List<WheelObs>();
 
         public void Init(int stageId)
         {
@@ -23,14 +24,20 @@ namespace Server
 
         public void AddRotateObs()
         {
-            if (_rotateObs.Count > 0)
-                return;
-
             RotateObs obs = new RotateObs();
             obs.Room = this;
             obs.Speed = 40.0f;
 
             _rotateObs.Add(obs);
+        }
+
+        public void AddWheelObs()
+        {
+            WheelObs obs = new WheelObs();
+            obs.Room = this;
+            obs.Speed = 10.0f;
+
+            _wheelObs.Add(obs);
         }
 
         public void Update()
@@ -95,14 +102,14 @@ namespace Server
                 PositionInfo dest = movePacket.PosInfo;
                 PositionInfo dir = movePacket.MoveDir;
 
-                int canGo = Stage.CanGo(dest);
-                if (canGo == -1)
-                    return;
-                //TODO 도착
-                if (canGo == 3)
-                    return;
-
-                Stage.ApplyMove(player, dest);
+                // int canGo = Stage.CanGo(dest);
+                // if (canGo == -1)
+                //     return;
+                // //TODO 도착
+                // if (canGo == 3)
+                //     return;
+                //
+                // Stage.ApplyMove(player, dest);
                 player.PosInfo = dest;
                 player.MoveDir = dir;
                 player.State = movePacket.State;

@@ -30,9 +30,16 @@ namespace Server.Game
 
         public static Vector3Int RoundToInt(float x, float y, float z)
         {
-            return new Vector3Int((int) MathF.Round(x + 0.1f, 0),
-                (int) MathF.Round(y + 0.1f, 0),
-                (int) MathF.Round(z + 0.1f, 0));
+            return new Vector3Int((int) MathF.Round(x, 0),
+                (int) MathF.Round(y, 0),
+                (int) MathF.Round(z, 0));
+        }
+
+        public static Vector3Int FloorToInt(float x, float y, float z)
+        {
+            return new Vector3Int((int) MathF.Floor(x),
+                (int) MathF.Floor(y),
+                (int) MathF.Floor(z));
         }
     }
 
@@ -190,6 +197,8 @@ namespace Server.Game
 
             Tuple<int, int, int> dest = GetPos(destPos);
             _players[dest.Item1, dest.Item2, dest.Item3] = player;
+
+            // Console.WriteLine($"ROUND: ({dest.Item1}, {dest.Item2}, {dest.Item3})");
         }
 
         public Tuple<int, int, int> GetPos(PositionInfo posInfo)
@@ -267,6 +276,8 @@ namespace Server.Game
 
                         if (line[x] == '7')
                             RoomManager.Instance.Find(1).AddRotateObs();
+                        if (line[x] == 'b')
+                            RoomManager.Instance.Find(1).AddWheelObs();
 
                         if (line[x] == '8')
                         {
