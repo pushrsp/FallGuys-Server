@@ -25,11 +25,6 @@ namespace Server.Game.Object
             _runningTime += tick * 0.13f;
             if (_runningTime > 360)
                 _runningTime = 0;
-
-            S_RotateObs rotateObs = new S_RotateObs();
-            rotateObs.Y = _runningTime;
-
-            Room.Broadcast(rotateObs);
         }
     }
 }

@@ -154,21 +154,6 @@ namespace Server.Game
             return true;
         }
 
-        public bool HitPlayer(PositionInfo destPos, int objectId)
-        {
-            if (!IsValidate(destPos))
-                return false;
-
-            Tuple<int, int, int> dest = GetPos(destPos);
-            if (_players[dest.Item1, dest.Item2, dest.Item3] != null)
-            {
-                if (_players[dest.Item1, dest.Item2, dest.Item3].ObjectId != objectId)
-                    return true;
-            }
-
-            return false;
-        }
-
         public void ApplyLeave(PositionInfo posInfo)
         {
             if (!IsValidate(posInfo))

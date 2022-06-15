@@ -23,4 +23,19 @@ public class PacketHandler
 
         room.HandleMove(player, movePacket);
     }
+
+    public static void C_JumpHandler(PacketSession session, IMessage packet)
+    {
+        C_Jump jumpPacket = packet as C_Jump;
+
+        ClientSession clientSession = session as ClientSession;
+
+        Player player = clientSession.Me;
+        if (player == null)
+            return;
+
+        GameRoom room = player.Room;
+        if (room == null)
+            return;
+    }
 }

@@ -42,11 +42,11 @@ namespace Server
 
         public void Update()
         {
-            if (_players.Count == 0)
-                return;
-
-            foreach (RotateObs rotateObs in _rotateObs)
-                rotateObs.Update();
+            // if (_players.Count == 0)
+            //     return;
+            //
+            // foreach (RotateObs rotateObs in _rotateObs)
+            //     rotateObs.Update();
         }
 
         public void EnterRoom(Player player)
@@ -102,35 +102,14 @@ namespace Server
                 PositionInfo dest = movePacket.PosInfo;
                 PositionInfo dir = movePacket.MoveDir;
 
-                // int canGo = Stage.CanGo(dest);
-                // if (canGo == -1)
-                //     return;
-                // //TODO 도착
-                // if (canGo == 3)
-                //     return;
-                //
-                // Stage.ApplyMove(player, dest);
                 player.PosInfo = dest;
                 player.MoveDir = dir;
-                player.State = movePacket.State;
 
-                S_Move resMovePacket = new S_Move
-                {
-                    PlayerInfo = new PlayerInfo
-                    {
-                        PosInfo = new PositionInfo(),
-                        MoveDir = new PositionInfo()
-                    }
-                };
-
-                PlayerInfo info = resMovePacket.PlayerInfo;
-                {
-                    info.ObjectId = player.ObjectId;
-                    info.State = player.State;
-                    info.PosInfo = player.PosInfo;
-                    info.MoveDir = player.MoveDir;
-                    info.Speed = player.Speed;
-                }
+                S_Move resMovePacket = new S_Move {MoveDir = new PositionInfo(), DestPos = new PositionInfo()};
+                resMovePacket.ObjectId = player.ObjectId;
+                resMovePacket.MoveDir = dir;
+                resMovePacket.DestPos = dest;
+                resMovePacket.State = movePacket.State;
 
                 Broadcast(resMovePacket);
             }
