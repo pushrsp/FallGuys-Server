@@ -26,8 +26,6 @@ public class PacketHandler
 
     public static void C_JumpHandler(PacketSession session, IMessage packet)
     {
-        C_Jump jumpPacket = packet as C_Jump;
-
         ClientSession clientSession = session as ClientSession;
 
         Player player = clientSession.Me;
@@ -37,5 +35,7 @@ public class PacketHandler
         GameRoom room = player.Room;
         if (room == null)
             return;
+
+        room.HandleJump(player);
     }
 }

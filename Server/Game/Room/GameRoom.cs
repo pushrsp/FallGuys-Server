@@ -115,6 +115,20 @@ namespace Server
             }
         }
 
+        public void HandleJump(Player player)
+        {
+            if (player == null)
+                return;
+
+            lock (_lock)
+            {
+                S_Jump resJumpPacket = new S_Jump();
+                resJumpPacket.ObjectId = player.ObjectId;
+
+                Broadcast(resJumpPacket);
+            }
+        }
+
         public void LeaveGame(int objectId)
         {
             lock (_lock)
