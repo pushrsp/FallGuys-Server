@@ -3,18 +3,19 @@ using Google.Protobuf.Protocol;
 
 namespace Server.Game.Object
 {
-    public class RotateObs
+    public class RotateObs : Obstacle
     {
-        public GameRoom Room { get; set; }
-        public float Speed { get; set; }
+        private float _yAngle;
+        private long _nextMoveTick;
+        private int _offset = 0;
 
-        private float _runningTime = 0.0f;
-        private long _nextMoveTick = 0;
-
-        public void Update()
+        public override void Update()
         {
             if (Room == null)
                 return;
+
+            if (_offset == 0)
+                _offset = RotateDir == Dir.Left ? -1 : 1;
 
             if (_nextMoveTick >= Environment.TickCount64)
                 return;
@@ -22,9 +23,15 @@ namespace Server.Game.Object
             long tick = (long) (1000 / Speed);
             _nextMoveTick = Environment.TickCount64 + tick;
 
-            _runningTime += tick * 0.13f;
-            if (_runningTime > 360)
-                _runningTime = 0;
+            _yAngle += tick * 0.13f * _offset;
+            if (_yAngle > 360)
+                _yAngle = 0;
+
+            S_RotateObstacle rotateObstacle = new S_RotateObstacle();
+            rotateObstacle.ObstacleId = Id;
+            rotateObstacle.YAngle = _yAngle;
+
+            Room.Broadcast(rotateObstacle);
         }
     }
 }

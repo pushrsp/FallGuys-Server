@@ -159,7 +159,7 @@ namespace Server.Game
             if (!IsValidate(posInfo))
                 return;
 
-            Tuple<int, int, int> pos = GetPos(posInfo);
+            Tuple<int, int, int> pos = ConvertPosToIndex(posInfo);
 
             _players[pos.Item1, pos.Item2, pos.Item3] = null;
         }
@@ -170,23 +170,23 @@ namespace Server.Game
             if (!IsValidate(posInfo))
                 return;
 
-            Tuple<int, int, int> pos = GetPos(posInfo);
+            Tuple<int, int, int> pos = ConvertPosToIndex(posInfo);
 
             _players[pos.Item1, pos.Item2, pos.Item3] = player;
         }
 
         public void ApplyMove(Player player, PositionInfo destPos)
         {
-            Tuple<int, int, int> source = GetPos(player.PosInfo);
+            Tuple<int, int, int> source = ConvertPosToIndex(player.PosInfo);
             _players[source.Item1, source.Item2, source.Item3] = null;
 
-            Tuple<int, int, int> dest = GetPos(destPos);
+            Tuple<int, int, int> dest = ConvertPosToIndex(destPos);
             _players[dest.Item1, dest.Item2, dest.Item3] = player;
 
             // Console.WriteLine($"ROUND: ({dest.Item1}, {dest.Item2}, {dest.Item3})");
         }
 
-        public Tuple<int, int, int> GetPos(PositionInfo posInfo)
+        private Tuple<int, int, int> ConvertPosToIndex(PositionInfo posInfo)
         {
             Vector3Int pos = Vector3Int.RoundToInt(posInfo.PosX, posInfo.PosY, posInfo.PosZ);
             int y = pos.y - MinY;
@@ -196,32 +196,33 @@ namespace Server.Game
             return new Tuple<int, int, int>(y, z, x);
         }
 
-        public int CanGo(PositionInfo posInfo)
+        public char CanGo(PositionInfo posInfo)
         {
             if (!IsValidate(posInfo))
-                return -1;
+                return '-';
 
-            Tuple<int, int, int> pos = GetPos(posInfo);
+            Tuple<int, int, int> pos = ConvertPosToIndex(posInfo);
 
-            switch (_collision[pos.Item1, pos.Item2, pos.Item3])
-            {
-                case '0':
-                    return 0;
-                case '3':
-                    return 3;
-                case '4':
-                    return -1;
-                case '5':
-                    return -1;
-                case '6':
-                    return 0;
-                case '7':
-                    return 0;
-                case '8':
-                    return 0;
-                default:
-                    return -1;
-            }
+            return _collision[pos.Item1, pos.Item2, pos.Item3];
+            // switch (_collision[pos.Item1, pos.Item2, pos.Item3])
+            // {
+            //     case '0':
+            //         return 0;
+            //     case '3':
+            //         return 3;
+            //     case '4':
+            //         return -1;
+            //     case '5':
+            //         return -1;
+            //     case '6':
+            //         return 0;
+            //     case '7':
+            //         return 0;
+            //     case '8':
+            //         return 0;
+            //     default:
+            //         return -1;
+            // }
         }
 
         public void LoadStage(int stageId, string pathPrefix = "../../../../../Shared/StageData")
@@ -259,10 +260,8 @@ namespace Server.Game
                     {
                         _collision[y, z, x] = line[x];
 
-                        if (line[x] == '7')
-                            RoomManager.Instance.Find(1).AddRotateObs();
-                        if (line[x] == 'b')
-                            RoomManager.Instance.Find(1).AddWheelObs();
+                        if (line[x] == 'a')
+                            RoomManager.Instance.Find(1).Add<RotateObs>(40.0f);
 
                         if (line[x] == '8')
                         {

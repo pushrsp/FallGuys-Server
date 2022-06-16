@@ -14,39 +14,30 @@ namespace Server
 
         private object _lock = new object();
         private Dictionary<int, Player> _players = new Dictionary<int, Player>();
-        private List<RotateObs> _rotateObs = new List<RotateObs>();
-        private List<WheelObs> _wheelObs = new List<WheelObs>();
+        private Dictionary<int, Obstacle> _obstacles = new Dictionary<int, Obstacle>();
+        private int _obstacleId = 1;
+        private Random _random = new Random();
 
         public void Init(int stageId)
         {
             Stage.LoadStage(stageId);
         }
 
-        public void AddRotateObs()
+        public void Add<T>(float speed) where T : Obstacle, new()
         {
-            RotateObs obs = new RotateObs();
+            T obs = new T();
             obs.Room = this;
-            obs.Speed = 40.0f;
+            obs.Speed = speed;
+            obs.Id = _obstacleId++;
+            obs.RotateDir = (Obstacle.Dir) _random.Next(0, 2);
 
-            _rotateObs.Add(obs);
-        }
-
-        public void AddWheelObs()
-        {
-            WheelObs obs = new WheelObs();
-            obs.Room = this;
-            obs.Speed = 10.0f;
-
-            _wheelObs.Add(obs);
+            _obstacles.Add(obs.Id, obs);
         }
 
         public void Update()
         {
-            // if (_players.Count == 0)
-            //     return;
-            //
-            // foreach (RotateObs rotateObs in _rotateObs)
-            //     rotateObs.Update();
+            foreach (Obstacle obs in _obstacles.Values)
+                obs.Update();
         }
 
         public void EnterRoom(Player player)
