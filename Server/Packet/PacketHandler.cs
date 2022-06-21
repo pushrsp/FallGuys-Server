@@ -38,4 +38,19 @@ public class PacketHandler
 
         room.HandleJump(player);
     }
+
+    public static void C_DieHandler(PacketSession session, IMessage packet)
+    {
+        ClientSession clientSession = session as ClientSession;
+
+        Player player = clientSession.Me;
+        if (player == null)
+            return;
+
+        GameRoom room = player.Room;
+        if (room == null)
+            return;
+
+        room.HandleDie(player);
+    }
 }

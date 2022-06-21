@@ -196,6 +196,59 @@ namespace Server.Game
             return new Tuple<int, int, int>(y, z, x);
         }
 
+        private Tuple<int, int, int> ConvertIndexToPos(int x, int y, int z)
+        {
+            return new Tuple<int, int, int>(y + MinY, MaxZ - z, x + MinX);
+        }
+
+        public Tuple<int, int, int> FindRespawn(PositionInfo posInfo, Player player)
+        {
+            //위 왼쪽 아래 오른쪽 앞 뒤
+            int[] deltaY = new int[6] {-1, 0, 1, 1, 0, 0};
+            int[] deltaX = new int[6] {0, -1, 0, 1, 0, 0};
+            int[] deltaZ = new int[6] {0, 0, 0, 0, -1, 1};
+
+            Queue<Tuple<int, int, int>> q = new Queue<Tuple<int, int, int>>();
+            q.Enqueue(ConvertPosToIndex(posInfo));
+            bool[,,] visited = new bool[YCount, ZCount, XCount];
+
+            while (q.Count > 0)
+            {
+                Tuple<int, int, int> pos = q.Dequeue();
+
+                if (_collision[pos.Item1, pos.Item2, pos.Item3] == '8')
+                {
+                    _players[pos.Item1, pos.Item2, pos.Item3] = player;
+                    return ConvertIndexToPos(pos.Item3, pos.Item1, pos.Item2);
+                }
+
+                for (int i = 0; i < 6; i++)
+                {
+                    int nextY = pos.Item1 + deltaY[i];
+                    int nextZ = pos.Item2 + deltaZ[i];
+                    int nextX = pos.Item3 + deltaX[i];
+
+                    if (nextY < 0 || nextY >= YCount)
+                        continue;
+                    if (nextZ < 0 || nextZ >= ZCount)
+                        continue;
+                    if (nextX < 0 || nextX >= XCount)
+                        continue;
+                    if (_collision[nextY, nextZ, nextX] == '4')
+                        continue;
+                    if (_players[nextY, nextZ, nextX] != null)
+                        continue;
+                    if (visited[nextY, nextZ, nextX])
+                        continue;
+
+                    visited[nextY, nextZ, nextX] = true;
+                    q.Enqueue(new Tuple<int, int, int>(nextY, nextZ, nextX));
+                }
+            }
+
+            return null;
+        }
+
         public char CanGo(PositionInfo posInfo)
         {
             if (!IsValidate(posInfo))
@@ -204,25 +257,6 @@ namespace Server.Game
             Tuple<int, int, int> pos = ConvertPosToIndex(posInfo);
 
             return _collision[pos.Item1, pos.Item2, pos.Item3];
-            // switch (_collision[pos.Item1, pos.Item2, pos.Item3])
-            // {
-            //     case '0':
-            //         return 0;
-            //     case '3':
-            //         return 3;
-            //     case '4':
-            //         return -1;
-            //     case '5':
-            //         return -1;
-            //     case '6':
-            //         return 0;
-            //     case '7':
-            //         return 0;
-            //     case '8':
-            //         return 0;
-            //     default:
-            //         return -1;
-            // }
         }
 
         public void LoadStage(int stageId, string pathPrefix = "../../../../../Shared/StageData")

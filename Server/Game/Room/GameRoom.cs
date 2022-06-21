@@ -93,6 +93,14 @@ namespace Server
                 PositionInfo dest = movePacket.PosInfo;
                 PositionInfo dir = movePacket.MoveDir;
 
+                char valid = Stage.CanGo(dest);
+                if (valid == '5')
+                {
+                    HandleDie(player);
+                    return;
+                }
+
+                Stage.ApplyMove(player, dest);
                 player.PosInfo = dest;
                 player.MoveDir = dir;
 
@@ -103,6 +111,53 @@ namespace Server
                 resMovePacket.State = movePacket.State;
 
                 Broadcast(resMovePacket);
+            }
+        }
+
+        public void HandleDie(Player player)
+        {
+            S_Die diePacket = new S_Die();
+            diePacket.ObjectId = player.ObjectId;
+
+            Broadcast(diePacket);
+            HandleRespawn(player.PosInfo, player);
+        }
+
+        private void HandleRespawn(PositionInfo dest, Player player)
+        {
+            //본인 전송
+            {
+                S_EnterGame enterPacket = new S_EnterGame
+                {
+                    PlayerInfo = new PlayerInfo
+                    {
+                        PosInfo = new PositionInfo(),
+                        MoveDir = new PositionInfo()
+                    }
+                };
+
+                Tuple<int, int, int> respawnPos = Stage.FindRespawn(dest, player);
+                player.PosInfo = new PositionInfo
+                {
+                    PosY = respawnPos.Item1,
+                    PosZ = respawnPos.Item2,
+                    PosX = respawnPos.Item3
+                };
+
+                enterPacket.PlayerInfo = player.Info;
+                player.Session.Send(enterPacket);
+            }
+
+            //타인 전송
+            {
+                S_Spawn spawnPacket = new S_Spawn();
+                spawnPacket.PlayerInfo.Add(player.Info);
+
+                foreach (Player p in _players.Values)
+                {
+                    if (p.ObjectId != player.ObjectId)
+                        p.Session.Send(spawnPacket);
+                }
             }
         }
 

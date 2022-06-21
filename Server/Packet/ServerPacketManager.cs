@@ -26,7 +26,9 @@ class PacketManager
 		_onRecv.Add((ushort)MsgId.CMove, MakePacket<C_Move>);
 		_handler.Add((ushort)MsgId.CMove, PacketHandler.C_MoveHandler);		
 		_onRecv.Add((ushort)MsgId.CJump, MakePacket<C_Jump>);
-		_handler.Add((ushort)MsgId.CJump, PacketHandler.C_JumpHandler);
+		_handler.Add((ushort)MsgId.CJump, PacketHandler.C_JumpHandler);		
+		_onRecv.Add((ushort)MsgId.CDie, MakePacket<C_Die>);
+		_handler.Add((ushort)MsgId.CDie, PacketHandler.C_DieHandler);
 	}
 
 	public void OnRecvPacket(PacketSession session, ArraySegment<byte> buffer)
