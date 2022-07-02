@@ -23,13 +23,20 @@ namespace Server
             Stage.LoadStage(stageId);
         }
 
-        public void Add<T>(float speed) where T : Obstacle, new()
+        public void Add<T>(float speed, Vector3 pivot) where T : Obstacle, new()
         {
             T obs = new T();
             obs.Room = this;
             obs.Speed = speed;
             obs.Id = _obstacleId++;
             obs.RotateDir = (Obstacle.Dir) _random.Next(0, 2);
+            obs.Type = ObstacleType.Rotate;
+
+            if (typeof(T).ToString().Contains("PendulumObs"))
+            {
+                (obs as PendulumObs).Pivot = pivot;
+                obs.Type = ObstacleType.Pendulum;
+            }
 
             _obstacles.Add(obs.Id, obs);
         }
@@ -60,6 +67,7 @@ namespace Server
                     enterPacket.PlayerInfo = player.Info;
                     player.Session.Send(enterPacket);
 
+                    //TODO: 장애물 플레이어 구분하기
                     S_Spawn spawnPacket = new S_Spawn();
                     foreach (Player p in _players.Values)
                     {
@@ -67,7 +75,12 @@ namespace Server
                             spawnPacket.PlayerInfo.Add(p.Info);
                     }
 
+                    S_SpawnObstacle spawnObstacle = new S_SpawnObstacle();
+                    foreach (Obstacle obs in _obstacles.Values)
+                        spawnObstacle.Obstacles.Add(new ObstacleInfo {ObstacleId = obs.Id, Type = obs.Type});
+
                     player.Session.Send(spawnPacket);
+                    player.Session.Send(spawnObstacle);
                 }
 
                 //타인 전송

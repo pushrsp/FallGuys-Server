@@ -7,15 +7,11 @@ namespace Server.Game.Object
     {
         private float _yAngle;
         private long _nextMoveTick;
-        private int _offset = 0;
 
         public override void Update()
         {
             if (Room == null)
                 return;
-
-            if (_offset == 0)
-                _offset = RotateDir == Dir.Left ? -1 : 1;
 
             if (_nextMoveTick >= Environment.TickCount64)
                 return;
@@ -23,7 +19,7 @@ namespace Server.Game.Object
             long tick = (long) (1000 / Speed);
             _nextMoveTick = Environment.TickCount64 + tick;
 
-            _yAngle += tick * 0.13f * _offset;
+            _yAngle += tick * 0.13f * Multiplier;
             if (_yAngle > 360)
                 _yAngle = 0;
 

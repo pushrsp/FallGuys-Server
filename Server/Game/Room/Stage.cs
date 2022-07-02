@@ -198,7 +198,7 @@ namespace Server.Game
 
         private Tuple<int, int, int> ConvertIndexToPos(int x, int y, int z)
         {
-            return new Tuple<int, int, int>(y + MinY, MaxZ - z, x + MinX);
+            return new Tuple<int, int, int>(y + MinY, MaxZ - z, x + MinX + 1);
         }
 
         public Tuple<int, int, int> FindRespawn(PositionInfo posInfo, Player player)
@@ -295,12 +295,16 @@ namespace Server.Game
                         _collision[y, z, x] = line[x];
 
                         if (line[x] == 'a')
-                            RoomManager.Instance.Find(1).Add<RotateObs>(40.0f);
+                            RoomManager.Instance.Find(1).Add<RotateObs>(40.0f, new Vector3(0, 0, 0));
+                        if (line[x] == 'b')
+                        {
+                            Tuple<int, int, int> pos = ConvertIndexToPos(x, y, z);
+                            RoomManager.Instance.Find(1)
+                                .Add<PendulumObs>(10.0f, new Vector3(pos.Item3, pos.Item1, pos.Item2));
+                        }
 
                         if (line[x] == '8')
-                        {
                             _startRespawn.Add(new Pos(y, MaxZ - z, MinX + x + 1));
-                        }
                     }
                 }
             }
