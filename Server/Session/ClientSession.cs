@@ -15,6 +15,8 @@ namespace Server
         public int SessionId { get; set; }
         public Player Me { get; set; }
 
+        private Random _random = new Random();
+
         public void Send(IMessage packet)
         {
             string msgName = packet.Descriptor.Name.Replace("_", string.Empty);
@@ -43,7 +45,7 @@ namespace Server
                 Me.PosInfo.PosZ = pos.Z;
                 Me.PosInfo.PosX = pos.X;
                 Me.Info.State = PlayerState.Idle;
-                Me.Info.PlayerSelect = 1;
+                Me.Info.PlayerSelect = _random.Next(1, 11);
                 Me.Info.Speed = 6.0f;
             }
 
