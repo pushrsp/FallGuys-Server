@@ -5,6 +5,8 @@ namespace Server
 {
     public class Player
     {
+        public string Username { get; set; }
+        public string Id { get; set; }
         public ClientSession Session { get; set; }
         public GameRoom Room { get; set; }
         private PlayerInfo _info = new PlayerInfo {PosInfo = new PositionInfo(), MoveDir = new PositionInfo()};
@@ -33,7 +35,7 @@ namespace Server
             set { Info.Name = value; }
         }
 
-        public int ObjectId
+        public string ObjectId
         {
             get { return Info.ObjectId; }
             set { Info.ObjectId = value; }

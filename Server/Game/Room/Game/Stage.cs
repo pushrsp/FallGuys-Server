@@ -295,11 +295,11 @@ namespace Server.Game
                         _collision[y, z, x] = line[x];
 
                         if (line[x] == 'a')
-                            RoomManager.Instance.Find(1).Add<RotateObs>(40.0f, new Vector3(0, 0, 0));
+                            GameManager.Instance.Find(1).Add<RotateObs>(40.0f, new Vector3(0, 0, 0));
                         if (line[x] == 'b')
                         {
                             Tuple<int, int, int> pos = ConvertIndexToPos(x, y, z);
-                            RoomManager.Instance.Find(1)
+                            GameManager.Instance.Find(1)
                                 .Add<PendulumObs>(10.0f, new Vector3(pos.Item3, pos.Item1, pos.Item2));
                         }
 

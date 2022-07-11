@@ -10,7 +10,7 @@ using Server.Game.Object;
 
 namespace Server
 {
-    public class ClientSession : PacketSession
+    public partial class ClientSession : PacketSession
     {
         public int SessionId { get; set; }
         public Player Me { get; set; }
@@ -31,25 +31,10 @@ namespace Server
 
         public override void OnConnected(EndPoint endPoint)
         {
-            Console.WriteLine($"OnConnected: {endPoint}");
-
-            Me = ObjectManager.Instance.Add();
-            GameRoom room = RoomManager.Instance.Find(1);
-
             {
-                Pos pos = room.Stage.FindStartPos();
-
-                Me.Session = this;
-                Me.Name = $"Player_{Me.ObjectId}";
-                Me.PosInfo.PosY = pos.Y;
-                Me.PosInfo.PosZ = pos.Z;
-                Me.PosInfo.PosX = pos.X;
-                Me.Info.State = PlayerState.Idle;
-                Me.Info.PlayerSelect = _random.Next(1, 11);
-                Me.Info.Speed = 6.0f;
+                S_Connected connectedOk = new S_Connected();
+                Send(connectedOk);
             }
-
-            room.EnterRoom(Me);
         }
 
         public override void OnSend(int numOfBytes)
@@ -58,12 +43,12 @@ namespace Server
 
         public override void OnDisconnected(EndPoint endPoint)
         {
-            GameRoom room = RoomManager.Instance.Find(1);
-            room.LeaveGame(Me.ObjectId);
-
-            SessionManager.Instance.Remove(this);
-
-            Console.WriteLine($"OnDisconnected: {endPoint}");
+            // GameRoom room = GameManager.Instance.Find(1);
+            // room.LeaveGame(Me.ObjectId);
+            //
+            // SessionManager.Instance.Remove(this);
+            //
+            // Console.WriteLine($"OnDisconnected: {endPoint}");
         }
 
         public override void OnRecvPacket(ArraySegment<byte> buffer)

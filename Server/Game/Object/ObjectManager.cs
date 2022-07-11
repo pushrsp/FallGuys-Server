@@ -7,15 +7,14 @@ namespace Server.Game.Object
         public static ObjectManager Instance { get; } = new ObjectManager();
 
         private object _lock = new object();
-        private Dictionary<int, Player> _players = new Dictionary<int, Player>();
-        private int objectId = 1;
+        private Dictionary<string, Player> _players = new Dictionary<string, Player>();
 
-        public Player Add()
+        public Player Add(string id)
         {
             Player player = new Player();
             lock (_lock)
             {
-                player.ObjectId = objectId++;
+                player.ObjectId = id;
                 _players.Add(player.ObjectId, player);
             }
 

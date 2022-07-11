@@ -1,39 +1,30 @@
 using System.Collections.Generic;
 
-namespace Server
+namespace Server.Game
 {
     public class RoomManager
     {
         public static RoomManager Instance { get; } = new RoomManager();
 
+        private Dictionary<string, Player> _players = new Dictionary<string, Player>();
+        private List<Room> _rooms = new List<Room>();
         private object _lock = new object();
-        private Dictionary<int, GameRoom> _rooms = new Dictionary<int, GameRoom>();
-        private int _roomId = 1;
 
-        public GameRoom Add(int mapId)
-        {
-            GameRoom room = new GameRoom();
-
-            lock (_lock)
-            {
-                room.RoomId = _roomId++;
-                _rooms.Add(room.RoomId, room);
-            }
-
-            room.Init(mapId);
-
-            return room;
-        }
-
-        public GameRoom Find(int roomId)
+        public Player EnterRoom(string username, string id)
         {
             lock (_lock)
             {
-                GameRoom room;
-                if (_rooms.TryGetValue(roomId, out room) == false)
-                    return null;
+                Player player = new Player();
 
-                return room;
+                {
+                    player.Id = id;
+                    player.Username = username;
+                    _players.Add(player.ObjectId, player);
+                }
+
+                //TODO: room broadcast
+
+                return player;
             }
         }
     }

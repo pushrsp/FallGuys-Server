@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Channels;
@@ -28,7 +30,7 @@ namespace Server
         {
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 7777);
 
-            TickRoom(RoomManager.Instance.Add(1), 50);
+            TickRoom(GameManager.Instance.Add(1), 50);
 
             _listener.Init(endPoint, () => SessionManager.Instance.Generate());
             Console.WriteLine("Listening...");

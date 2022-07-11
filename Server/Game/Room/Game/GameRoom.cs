@@ -13,7 +13,7 @@ namespace Server
         public Stage Stage { get; } = new Stage();
 
         private object _lock = new object();
-        private Dictionary<int, Player> _players = new Dictionary<int, Player>();
+        private Dictionary<string, Player> _players = new Dictionary<string, Player>();
         private Dictionary<int, Obstacle> _obstacles = new Dictionary<int, Obstacle>();
         private int _obstacleId = 1;
         private Random _random = new Random();
@@ -188,7 +188,7 @@ namespace Server
             }
         }
 
-        public void LeaveGame(int objectId)
+        public void LeaveGame(string objectId)
         {
             lock (_lock)
             {

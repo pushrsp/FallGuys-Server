@@ -1,4 +1,6 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using Core;
 using Google.Protobuf;
 using Google.Protobuf.Protocol;
@@ -52,5 +54,20 @@ public class PacketHandler
             return;
 
         room.HandleDie(player);
+    }
+
+    public static void C_LoginHandler(PacketSession session, IMessage packet)
+    {
+        C_Login loginPacket = packet as C_Login;
+        ClientSession clientSession = session as ClientSession;
+
+        clientSession.HandleLogin(loginPacket);
+    }
+
+    public static void C_EnterLobbyHandler(PacketSession session, IMessage packet)
+    {
+        ClientSession clientSession = session as ClientSession;
+
+        clientSession.HandleEnterGame();
     }
 }
