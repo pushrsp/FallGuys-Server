@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Google.Protobuf.Protocol;
 
 namespace Server.Game
 {
@@ -9,8 +10,9 @@ namespace Server.Game
         private Dictionary<string, Player> _players = new Dictionary<string, Player>();
         private List<Room> _rooms = new List<Room>();
         private object _lock = new object();
+        private int _index = 0;
 
-        public Player EnterRoom(string username, string id)
+        public Player EnterRoom(string username, string id, ClientSession session)
         {
             lock (_lock)
             {
@@ -19,10 +21,26 @@ namespace Server.Game
                 {
                     player.Id = id;
                     player.Username = username;
+                    player.Session = session;
                     _players.Add(player.ObjectId, player);
                 }
 
-                //TODO: room broadcast
+                Room room = new Room();
+                {
+                    room.State = RoomState.None;
+                    room.Title = "아무나 들어와!";
+                    room.Idx = _index++;
+                    room.OwnerId = player.Id;
+                    room.AddPlayer(player);
+                    // room.Players.Add(player.Id, player);
+                }
+                _rooms.Add(room);
+
+                S_RoomList roomList = new S_RoomList();
+                foreach (Room r in _rooms)
+                    roomList.Rooms.Add(r.Info);
+
+                player.Session.Send(roomList);
 
                 return player;
             }
