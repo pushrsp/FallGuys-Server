@@ -5,10 +5,12 @@ namespace Server
 {
     public class Player
     {
+        public GameState GameState { get; set; } = GameState.Login;
         public string Username { get; set; }
-        public string Id { get; set; }
+        public string Token { get; set; }
         public ClientSession Session { get; set; }
-        public GameRoom Room { get; set; }
+        public GameRoom GameRoom { get; set; }
+        public Room Room { get; set; }
         private PlayerInfo _info = new PlayerInfo {PosInfo = new PositionInfo(), MoveDir = new PositionInfo()};
 
         public PlayerInfo Info

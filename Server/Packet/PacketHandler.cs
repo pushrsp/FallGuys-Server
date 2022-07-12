@@ -5,6 +5,7 @@ using Core;
 using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using Server;
+using Server.Game;
 
 // ReSharper disable All
 
@@ -19,7 +20,7 @@ public class PacketHandler
         if (player == null)
             return;
 
-        GameRoom room = player.Room;
+        GameRoom room = player.GameRoom;
         if (room == null)
             return;
 
@@ -34,7 +35,7 @@ public class PacketHandler
         if (player == null)
             return;
 
-        GameRoom room = player.Room;
+        GameRoom room = player.GameRoom;
         if (room == null)
             return;
 
@@ -49,7 +50,7 @@ public class PacketHandler
         if (player == null)
             return;
 
-        GameRoom room = player.Room;
+        GameRoom room = player.GameRoom;
         if (room == null)
             return;
 
@@ -64,10 +65,18 @@ public class PacketHandler
         clientSession.HandleLogin(loginPacket);
     }
 
-    public static void C_EnterLobbyHandler(PacketSession session, IMessage packet)
+    public static void C_EnterGameHandler(PacketSession session, IMessage packet)
     {
         ClientSession clientSession = session as ClientSession;
 
         clientSession.HandleEnterGame();
+    }
+
+    public static void C_MakeRoomHandler(PacketSession session, IMessage packet)
+    {
+        C_MakeRoom makeRoomPacket = packet as C_MakeRoom;
+        ClientSession clientSession = session as ClientSession;
+
+        RoomManager.Instance.HandleMakeRoom(makeRoomPacket, clientSession.Me);
     }
 }

@@ -31,6 +31,7 @@ namespace Server
 
         public override void OnConnected(EndPoint endPoint)
         {
+            Console.WriteLine($"OnConnected: {endPoint}");
             {
                 S_Connected connectedOk = new S_Connected();
                 Send(connectedOk);

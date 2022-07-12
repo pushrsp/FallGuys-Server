@@ -8,12 +8,8 @@ using Server.Game.Object;
 
 namespace Server
 {
-    public partial class ClientSession : PacketSession
+    public partial class ClientSession
     {
-        public string Token { get; set; }
-        public string Id { get; set; }
-        public string Username { get; set; }
-
         public void HandleLogin(C_Login loginPacket)
         {
             if (loginPacket.Token == null)
@@ -27,17 +23,19 @@ namespace Server
                 string id = token.Claims.First(t => t.Type == "id").Value;
                 string username = token.Claims.First(t => t.Type == "username").Value;
 
-                {
-                    Token = loginPacket.Token;
-                    Id = id;
-                    Username = username;
-                }
-
-
                 S_Login loginOk = new S_Login();
                 loginOk.Success = true;
-                loginOk.Id = Id;
-                loginOk.Username = Username;
+                loginOk.Id = id;
+                loginOk.Username = username;
+
+                Me = new Player();
+                {
+                    Me.ObjectId = id;
+                    Me.Username = username;
+                    Me.Session = this;
+                    Me.Token = loginPacket.Token;
+                    Me.GameState = GameState.Login;
+                }
 
                 Send(loginOk);
             }
@@ -54,21 +52,21 @@ namespace Server
 
         public void HandleEnterGame()
         {
-            Me = RoomManager.Instance.EnterRoom(Username, Id, this);
+            RoomManager.Instance.EnterRoom(Me);
             // GameRoom room = GameManager.Instance.Find(1);
 
-            {
-                // Pos pos = room.Stage.FindStartPos();
+            // {
+            // Pos pos = room.Stage.FindStartPos();
 
-                // Me.Session = this;
-                // Me.Name = $"{Username}";
-                // Me.PosInfo.PosY = pos.Y;
-                // Me.PosInfo.PosZ = pos.Z;
-                // Me.PosInfo.PosX = pos.X;
-                // Me.Info.State = PlayerState.Idle;
-                // Me.Info.PlayerSelect = _random.Next(1, 11);
-                // Me.Info.Speed = 6.0f;
-            }
+            // Me.Session = this;
+            // Me.Name = $"{Username}";
+            // Me.PosInfo.PosY = pos.Y;
+            // Me.PosInfo.PosZ = pos.Z;
+            // Me.PosInfo.PosX = pos.X;
+            // Me.Info.State = PlayerState.Idle;
+            // Me.Info.PlayerSelect = _random.Next(1, 11);
+            // Me.Info.Speed = 6.0f;
+            // }
 
             // room.EnterRoom(Me);
         }

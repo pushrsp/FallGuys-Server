@@ -44,7 +44,9 @@ namespace Server.Game
         {
             lock (_lock)
             {
-                _players.Add(player.Id, player);
+                player.Room = this;
+                player.GameState = GameState.Lobby;
+                _players.Add(player.ObjectId, player);
                 PlayerCount = _players.Count;
             }
         }
