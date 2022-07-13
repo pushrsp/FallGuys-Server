@@ -6,11 +6,16 @@ namespace Server
     public class Player
     {
         public GameState GameState { get; set; } = GameState.Login;
-        public string Username { get; set; }
+
+        public string Username
+        {
+            get { return Info.Username; }
+            set { Info.Username = value; }
+        }
+
         public string Token { get; set; }
         public ClientSession Session { get; set; }
-        public GameRoom GameRoom { get; set; }
-        public Room Room { get; set; }
+        public IRoom Room { get; set; }
         private PlayerInfo _info = new PlayerInfo {PosInfo = new PositionInfo(), MoveDir = new PositionInfo()};
 
         public PlayerInfo Info
@@ -31,12 +36,6 @@ namespace Server
             set { Info.Speed = value; }
         }
 
-        public string Name
-        {
-            get { return Info.Name; }
-            set { Info.Name = value; }
-        }
-
         public string ObjectId
         {
             get { return Info.ObjectId; }
@@ -54,6 +53,12 @@ namespace Server
             }
         }
 
+        public int PlayerSelect
+        {
+            get { return Info.PlayerSelect; }
+            set { Info.PlayerSelect = value; }
+        }
+
         public Vector3 PosInfoVec
         {
             get => new Vector3(PosInfo.PosX, PosInfo.PosY, PosInfo.PosZ);
@@ -68,6 +73,16 @@ namespace Server
                 Info.MoveDir.PosY = value.PosY;
                 Info.MoveDir.PosZ = value.PosZ;
             }
+        }
+
+        public void ResetInfo()
+        {
+            State = PlayerState.Idle;
+            Speed = 6.0f;
+            PosInfo.PosX = 0;
+            PosInfo.PosY = 0;
+            PosInfo.PosZ = 0;
+            PlayerSelect = 1;
         }
     }
 }

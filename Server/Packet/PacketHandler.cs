@@ -20,7 +20,7 @@ public class PacketHandler
         if (player == null)
             return;
 
-        GameRoom room = player.GameRoom;
+        IRoom room = player.Room;
         if (room == null)
             return;
 
@@ -35,7 +35,7 @@ public class PacketHandler
         if (player == null)
             return;
 
-        GameRoom room = player.GameRoom;
+        IRoom room = player.Room;
         if (room == null)
             return;
 
@@ -50,7 +50,7 @@ public class PacketHandler
         if (player == null)
             return;
 
-        GameRoom room = player.GameRoom;
+        GameRoom room = player.Room as GameRoom;
         if (room == null)
             return;
 
@@ -78,5 +78,18 @@ public class PacketHandler
         ClientSession clientSession = session as ClientSession;
 
         RoomManager.Instance.HandleMakeRoom(makeRoomPacket, clientSession.Me);
+    }
+
+    public static void C_EnterRoomHandler(PacketSession session, IMessage packet)
+    {
+        C_EnterRoom enterRoomPacket = packet as C_EnterRoom;
+        ClientSession clientSession = session as ClientSession;
+
+        Player player = clientSession.Me;
+        if (player == null)
+            return;
+
+        IRoom room = RoomManager.Instance.GetRoom(enterRoomPacket.RoomIdx);
+        room.HandleEnterRoom(player);
     }
 }

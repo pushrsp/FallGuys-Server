@@ -13,6 +13,22 @@ namespace Server.Game
         private object _lock = new object();
         private int _index;
 
+        public Room GetRoom(int idx)
+        {
+            lock (_lock)
+            {
+                return _rooms[idx];
+            }
+        }
+
+        public void RemovePlayer(string objectId)
+        {
+            lock (_lock)
+            {
+                _players.Remove(objectId);
+            }
+        }
+
         public void EnterRoom(Player player)
         {
             lock (_lock)
@@ -43,7 +59,6 @@ namespace Server.Game
                     room.Idx = _index++;
                     room.State = RoomState.None;
                     room.Title = roomInfoPacket.Title;
-                    room.AddPlayer(player);
                     room.OwnerId = roomInfoPacket.Id;
                 }
 
@@ -52,15 +67,20 @@ namespace Server.Game
                 S_AddRoom makeRoomPacket = new S_AddRoom {Room = new RoomInfo()};
                 makeRoomPacket.Room.MergeFrom(room.Info);
 
-                //'나' 로비로 보내기,'나' 지우기
-                _players.Remove(player.ObjectId);
                 S_MakeRoomOk makeOk = new S_MakeRoomOk();
                 makeOk.Success = true;
+                makeOk.RoomIdx = room.Idx;
                 player.Session.Send(makeOk);
 
                 foreach (Player p in _players.Values)
                     p.Session.Send(makeRoomPacket);
             }
+        }
+
+        public void HandleChangeRoom(S_ChangeRoom changeRoomPacket)
+        {
+            foreach (Player player in _players.Values)
+                player.Session.Send(changeRoomPacket);
         }
     }
 }

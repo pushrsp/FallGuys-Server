@@ -7,7 +7,7 @@ using Server.Game.Object;
 
 namespace Server
 {
-    public class GameRoom
+    public class GameRoom : IRoom
     {
         public int RoomId { get; set; }
         public Stage Stage { get; } = new Stage();
@@ -47,14 +47,14 @@ namespace Server
                 obs.Update();
         }
 
-        public void EnterRoom(Player player)
+        public void HandleEnterRoom(Player player)
         {
             if (player == null)
                 return;
 
             lock (_lock)
             {
-                player.GameRoom = this;
+                player.Room = this;
                 _players.Add(player.ObjectId, player);
 
                 //Map
@@ -63,8 +63,8 @@ namespace Server
                 //본인 전송
                 {
                     S_EnterGame enterPacket = new S_EnterGame
-                        {PlayerInfo = new PlayerInfo {PosInfo = new PositionInfo()}};
-                    enterPacket.PlayerInfo = player.Info;
+                        {Player = new PlayerInfo {PosInfo = new PositionInfo()}};
+                    enterPacket.Player = player.Info;
                     player.Session.Send(enterPacket);
 
                     //TODO: 장애물 플레이어 구분하기
@@ -72,7 +72,7 @@ namespace Server
                     foreach (Player p in _players.Values)
                     {
                         if (p.ObjectId != player.ObjectId)
-                            spawnPacket.PlayerInfo.Add(p.Info);
+                            spawnPacket.Players.Add(p.Info);
                     }
 
                     S_SpawnObstacle spawnObstacle = new S_SpawnObstacle();
@@ -86,7 +86,7 @@ namespace Server
                 //타인 전송
                 {
                     S_Spawn spawnPacket = new S_Spawn();
-                    spawnPacket.PlayerInfo.Add(player.Info);
+                    spawnPacket.Players.Add(player.Info);
                     foreach (Player p in _players.Values)
                     {
                         if (p.ObjectId != player.ObjectId)
@@ -142,7 +142,7 @@ namespace Server
             {
                 S_EnterGame enterPacket = new S_EnterGame
                 {
-                    PlayerInfo = new PlayerInfo
+                    Player = new PlayerInfo
                     {
                         PosInfo = new PositionInfo(),
                         MoveDir = new PositionInfo()
@@ -157,14 +157,14 @@ namespace Server
                     PosX = respawnPos.Item3
                 };
 
-                enterPacket.PlayerInfo = player.Info;
+                enterPacket.Player = player.Info;
                 player.Session.Send(enterPacket);
             }
 
             //타인 전송
             {
                 S_Spawn spawnPacket = new S_Spawn();
-                spawnPacket.PlayerInfo.Add(player.Info);
+                spawnPacket.Players.Add(player.Info);
 
                 foreach (Player p in _players.Values)
                 {
@@ -197,7 +197,7 @@ namespace Server
                     return;
 
                 Stage.ApplyLeave(player.PosInfo);
-                player.GameRoom = null;
+                player.Room = null;
 
                 //본인 전송
                 {
