@@ -41,6 +41,7 @@ namespace Server.Game
 
         private Dictionary<string, Player> _players = new Dictionary<string, Player>();
         private object _lock = new object();
+        private Random _random = new Random();
 
         public void HandleEnterRoom(Player player)
         {
@@ -54,6 +55,7 @@ namespace Server.Game
                     _players.Add(player.ObjectId, player);
                     PlayerCount = _players.Count;
                     player.ResetInfo();
+                    player.PosInfo.PosX = _random.Next(0, 151);
                 }
 
                 RoomManager.Instance.RemovePlayer(player.ObjectId);
@@ -91,6 +93,41 @@ namespace Server.Game
                     S_SpawnInRoom spawnInRoom = new S_SpawnInRoom();
                     spawnInRoom.Players.Add(player.Info);
                     p.Session.Send(spawnInRoom);
+                }
+            }
+        }
+
+        public void HandleChangePlayer(Player player, C_ChangePlayer changePlayerPacket)
+        {
+            player.PlayerSelect = changePlayerPacket.PlayerSelect;
+
+            lock (_lock)
+            {
+                // 디스폰
+                {
+                    S_Despawn despawnPacket = new S_Despawn();
+                    despawnPacket.ObjectId.Add(player.ObjectId);
+
+                    Broadcast(despawnPacket);
+                }
+
+                //리스폰
+                {
+                    S_SpawnInRoom spawnInRoomPacket = new S_SpawnInRoom {Me = new PlayerInfo()};
+                    spawnInRoomPacket.Me.MergeFrom(player.Info);
+
+                    player.Session.Send(spawnInRoomPacket);
+
+                    spawnInRoomPacket.Me = null;
+                    spawnInRoomPacket.Players.Add(player.Info);
+
+                    foreach (Player p in _players.Values)
+                    {
+                        if (p.ObjectId == player.ObjectId)
+                            continue;
+
+                        p.Session.Send(spawnInRoomPacket);
+                    }
                 }
             }
         }

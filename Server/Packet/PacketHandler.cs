@@ -92,4 +92,20 @@ public class PacketHandler
         IRoom room = RoomManager.Instance.GetRoom(enterRoomPacket.RoomIdx);
         room.HandleEnterRoom(player);
     }
+
+    public static void C_ChangePlayerHandler(PacketSession session, IMessage packet)
+    {
+        C_ChangePlayer changePlayerPacket = packet as C_ChangePlayer;
+        ClientSession clientSession = session as ClientSession;
+
+        Player player = clientSession.Me;
+        if (player == null)
+            return;
+
+        Room room = player.Room as Room;
+        if (room == null)
+            return;
+
+        room.HandleChangePlayer(player, changePlayerPacket);
+    }
 }

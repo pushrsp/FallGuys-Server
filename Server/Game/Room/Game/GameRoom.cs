@@ -208,7 +208,7 @@ namespace Server
                 //타인 전송
                 {
                     S_Despawn despawn = new S_Despawn();
-                    despawn.PlayerId.Add(player.ObjectId);
+                    despawn.ObjectId.Add(player.ObjectId);
 
                     foreach (Player p in _players.Values)
                     {
