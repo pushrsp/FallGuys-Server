@@ -67,9 +67,9 @@ namespace Server.Game
                 S_AddRoom makeRoomPacket = new S_AddRoom {Room = new RoomInfo()};
                 makeRoomPacket.Room.MergeFrom(room.Info);
 
-                S_MakeRoomOk makeOk = new S_MakeRoomOk();
+                S_MakeRoomOk makeOk = new S_MakeRoomOk {Room = new RoomInfo()};
                 makeOk.Success = true;
-                makeOk.RoomIdx = room.Idx;
+                makeOk.Room.MergeFrom(room.Info);
                 player.Session.Send(makeOk);
 
                 foreach (Player p in _players.Values)
