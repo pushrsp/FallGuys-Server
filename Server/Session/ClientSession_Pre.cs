@@ -53,21 +53,6 @@ namespace Server
         public void HandleEnterGame()
         {
             RoomManager.Instance.EnterRoom(Me);
-
-            // {
-            // Pos pos = room.Stage.FindStartPos();
-
-            // Me.Session = this;
-            // Me.Name = $"{Username}";
-            // Me.PosInfo.PosY = pos.Y;
-            // Me.PosInfo.PosZ = pos.Z;
-            // Me.PosInfo.PosX = pos.X;
-            // Me.Info.State = PlayerState.Idle;
-            // Me.Info.PlayerSelect = _random.Next(1, 11);
-            // Me.Info.Speed = 6.0f;
-            // }
-
-            // room.EnterRoom(Me);
         }
     }
 }

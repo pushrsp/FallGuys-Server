@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Timers;
 using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using Server.Game;
@@ -10,6 +11,7 @@ namespace Server
     public class GameRoom : IRoom
     {
         public int RoomId { get; set; }
+        public int PlayerCount { get; set; }
         public Stage Stage { get; } = new Stage();
 
         private object _lock = new object();
@@ -17,6 +19,7 @@ namespace Server
         private Dictionary<int, Obstacle> _obstacles = new Dictionary<int, Obstacle>();
         private int _obstacleId = 1;
         private Random _random = new Random();
+        private Timer _timer = new Timer();
 
         public void Init(int stageId)
         {
@@ -47,6 +50,35 @@ namespace Server
                 obs.Update();
         }
 
+        private int _counter = 4;
+
+        private void TimerTick(object o, ElapsedEventArgs e)
+        {
+            S_StartCountDown startCountDownPacket = new S_StartCountDown();
+            startCountDownPacket.Counter = _counter;
+
+            Broadcast(startCountDownPacket);
+
+            if (_counter == 0)
+            {
+                _timer.Stop();
+                _timer.Close();
+            }
+            else if (_counter == 1)
+            {
+                Program.TickRoom(this, 100);
+            }
+
+            _counter--;
+        }
+
+        private void StartCount()
+        {
+            _timer.Interval = 1000;
+            _timer.Elapsed += TimerTick;
+            _timer.Start();
+        }
+
         public void HandleEnterRoom(Player player)
         {
             if (player == null)
@@ -57,6 +89,9 @@ namespace Server
                 player.GameRoom = this;
                 player.GameState = GameState.Game;
                 _players.Add(player.ObjectId, player);
+
+                if (_players.Count == PlayerCount)
+                    StartCount();
 
                 Pos pos = Stage.FindStartPos();
                 {
@@ -72,7 +107,8 @@ namespace Server
                 {
                     S_EnterRoom enterPacket = new S_EnterRoom
                         {Player = new PlayerInfo {PosInfo = new PositionInfo()}};
-                    enterPacket.Player = player.Info;
+                    enterPacket.Player.MergeFrom(player.Info);
+                    enterPacket.CanMove = false;
                     player.Session.Send(enterPacket);
 
                     //TODO: 장애물 플레이어 구분하기
@@ -165,7 +201,8 @@ namespace Server
                     PosX = respawnPos.Item3
                 };
 
-                enterPacket.Player = player.Info;
+                enterPacket.Player.MergeFrom(player.Info);
+                enterPacket.CanMove = true;
                 player.Session.Send(enterPacket);
             }
 

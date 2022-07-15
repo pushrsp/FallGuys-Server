@@ -69,6 +69,7 @@ namespace Server.Game
                 {
                     S_EnterRoom enterRoomPacket = new S_EnterRoom {Player = new PlayerInfo()};
                     enterRoomPacket.Player.MergeFrom(player.Info);
+                    enterRoomPacket.CanMove = true;
 
                     player.Session.Send(enterRoomPacket);
 
@@ -169,6 +170,7 @@ namespace Server.Game
             lock (_lock)
             {
                 GameRoom gameRoom = GameManager.Instance.Add(stageId);
+                gameRoom.PlayerCount = _players.Count;
                 S_StartGame startGamePacket = new S_StartGame();
                 startGamePacket.StageId = stageId;
 
