@@ -108,4 +108,35 @@ public class PacketHandler
 
         room.HandleChangePlayer(player, changePlayerPacket);
     }
+
+    public static void C_StartGameHandler(PacketSession session, IMessage packet)
+    {
+        C_StartGame startGamePacket = packet as C_StartGame;
+        ClientSession clientSession = session as ClientSession;
+
+        Player player = clientSession.Me;
+        if (player == null)
+            return;
+
+        Room room = player.EnteredRoom;
+        if (room == null)
+            return;
+
+        room.HandleStartGame(player, startGamePacket.StageId);
+    }
+
+    public static void C_EnterGameRoomHandler(PacketSession session, IMessage packet)
+    {
+        ClientSession clientSession = session as ClientSession;
+
+        Player player = clientSession.Me;
+        if (player == null)
+            return;
+
+        IRoom room = player.Room;
+        if (room == null)
+            return;
+
+        room.HandleEnterRoom(player);
+    }
 }

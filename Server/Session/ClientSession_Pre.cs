@@ -53,7 +53,6 @@ namespace Server
         public void HandleEnterGame()
         {
             RoomManager.Instance.EnterRoom(Me);
-            // GameRoom room = GameManager.Instance.Find(1);
 
             // {
             // Pos pos = room.Stage.FindStartPos();

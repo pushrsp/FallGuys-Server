@@ -55,7 +55,15 @@ namespace Server
             lock (_lock)
             {
                 player.GameRoom = this;
+                player.GameState = GameState.Game;
                 _players.Add(player.ObjectId, player);
+
+                Pos pos = Stage.FindStartPos();
+                {
+                    player.PosInfo.PosY = pos.Y;
+                    player.PosInfo.PosZ = pos.Z;
+                    player.PosInfo.PosX = pos.X;
+                }
 
                 //Map
                 Stage.ApplyMove(player);

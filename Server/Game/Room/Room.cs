@@ -161,6 +161,26 @@ namespace Server.Game
             }
         }
 
+        public void HandleStartGame(Player player, int stageId)
+        {
+            if (player.ObjectId != OwnerId)
+                return;
+
+            lock (_lock)
+            {
+                GameRoom gameRoom = GameManager.Instance.Add(stageId);
+                S_StartGame startGamePacket = new S_StartGame();
+                startGamePacket.StageId = stageId;
+
+                foreach (Player p in _players.Values)
+                {
+                    p.GameRoom = gameRoom;
+                    p.GameState = GameState.Game;
+                    p.Session.Send(startGamePacket);
+                }
+            }
+        }
+
         public void Broadcast(IMessage packet)
         {
             lock (_lock)
