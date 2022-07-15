@@ -47,11 +47,9 @@ namespace Server.Game
         {
             lock (_lock)
             {
-                S_SpawnInRoom spawnRoomPacket = new S_SpawnInRoom {Me = new PlayerInfo()};
-
                 {
-                    player.Room = this;
-                    player.GameState = GameState.Lobby;
+                    player.EnteredRoom = this;
+                    player.GameState = GameState.Room;
                     _players.Add(player.ObjectId, player);
                     PlayerCount = _players.Count;
                     player.ResetInfo();
@@ -67,32 +65,37 @@ namespace Server.Game
                     RoomManager.Instance.HandleChangeRoom(changeRoomPacket);
                 }
 
-                spawnRoomPacket.Me.MergeFrom(player.Info);
-
-                foreach (Player otherPlayers in _players.Values)
+                //본인 전송
                 {
-                    if (otherPlayers.ObjectId == player.ObjectId)
-                        continue;
+                    S_EnterRoom enterRoomPacket = new S_EnterRoom {Player = new PlayerInfo()};
+                    enterRoomPacket.Player.MergeFrom(player.Info);
 
-                    spawnRoomPacket.Players.Add(otherPlayers.Info);
+                    player.Session.Send(enterRoomPacket);
+
+                    S_Spawn spawnPacket = new S_Spawn();
+                    foreach (Player p in _players.Values)
+                    {
+                        if (p.ObjectId == player.ObjectId)
+                            continue;
+
+                        spawnPacket.Players.Add(p.Info);
+                    }
+
+                    player.Session.Send(spawnPacket);
                 }
 
-                ClientSession clientSession = player.Session;
-                if (clientSession == null)
-                    return;
-
-                //본인 전송
-                clientSession.Send(spawnRoomPacket);
-
-                //타인전송
-                foreach (Player p in _players.Values)
+                //타인 전송
                 {
-                    if (p.ObjectId == player.ObjectId)
-                        continue;
+                    S_Spawn spawnPacket = new S_Spawn();
+                    spawnPacket.Players.Add(player.Info);
 
-                    S_SpawnInRoom spawnInRoom = new S_SpawnInRoom();
-                    spawnInRoom.Players.Add(player.Info);
-                    p.Session.Send(spawnInRoom);
+                    foreach (Player p in _players.Values)
+                    {
+                        if (p.ObjectId == player.ObjectId)
+                            continue;
+
+                        p.Session.Send(spawnPacket);
+                    }
                 }
             }
         }
@@ -113,21 +116,10 @@ namespace Server.Game
 
                 //리스폰
                 {
-                    S_SpawnInRoom spawnInRoomPacket = new S_SpawnInRoom {Me = new PlayerInfo()};
-                    spawnInRoomPacket.Me.MergeFrom(player.Info);
+                    S_Spawn spawnPacket = new S_Spawn();
+                    spawnPacket.Players.Add(player.Info);
 
-                    player.Session.Send(spawnInRoomPacket);
-
-                    spawnInRoomPacket.Me = null;
-                    spawnInRoomPacket.Players.Add(player.Info);
-
-                    foreach (Player p in _players.Values)
-                    {
-                        if (p.ObjectId == player.ObjectId)
-                            continue;
-
-                        p.Session.Send(spawnInRoomPacket);
-                    }
+                    Broadcast(spawnPacket);
                 }
             }
         }

@@ -50,7 +50,7 @@ public class PacketHandler
         if (player == null)
             return;
 
-        GameRoom room = player.Room as GameRoom;
+        GameRoom room = player.GameRoom;
         if (room == null)
             return;
 
@@ -102,7 +102,7 @@ public class PacketHandler
         if (player == null)
             return;
 
-        Room room = player.Room as Room;
+        Room room = player.EnteredRoom;
         if (room == null)
             return;
 

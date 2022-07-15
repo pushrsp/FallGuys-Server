@@ -34,7 +34,7 @@ namespace Server
                     Me.Username = username;
                     Me.Session = this;
                     Me.Token = loginPacket.Token;
-                    Me.GameState = GameState.Login;
+                    Me.GameState = GameState.Lobby;
                 }
 
                 Send(loginOk);

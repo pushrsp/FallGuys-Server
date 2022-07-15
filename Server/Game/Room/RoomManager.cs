@@ -34,7 +34,7 @@ namespace Server.Game
             lock (_lock)
             {
                 //TODO: GameState 보안체크 only login
-                player.GameState = GameState.Room;
+                player.GameState = GameState.Lobby;
                 _players.Add(player.ObjectId, player);
 
                 S_RoomList roomList = new S_RoomList();

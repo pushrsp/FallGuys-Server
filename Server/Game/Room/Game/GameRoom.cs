@@ -54,7 +54,7 @@ namespace Server
 
             lock (_lock)
             {
-                player.Room = this;
+                player.GameRoom = this;
                 _players.Add(player.ObjectId, player);
 
                 //Map
@@ -62,7 +62,7 @@ namespace Server
 
                 //본인 전송
                 {
-                    S_EnterGame enterPacket = new S_EnterGame
+                    S_EnterRoom enterPacket = new S_EnterRoom
                         {Player = new PlayerInfo {PosInfo = new PositionInfo()}};
                     enterPacket.Player = player.Info;
                     player.Session.Send(enterPacket);
@@ -140,7 +140,7 @@ namespace Server
         {
             //본인 전송
             {
-                S_EnterGame enterPacket = new S_EnterGame
+                S_EnterRoom enterPacket = new S_EnterRoom
                 {
                     Player = new PlayerInfo
                     {
@@ -197,7 +197,7 @@ namespace Server
                     return;
 
                 Stage.ApplyLeave(player.PosInfo);
-                player.Room = null;
+                player.GameRoom = null;
 
                 //본인 전송
                 {

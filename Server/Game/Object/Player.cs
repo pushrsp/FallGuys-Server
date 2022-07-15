@@ -5,7 +5,11 @@ namespace Server
 {
     public class Player
     {
-        public GameState GameState { get; set; } = GameState.Login;
+        public GameState GameState
+        {
+            get { return Info.GameState; }
+            set { Info.GameState = value; }
+        }
 
         public string Username
         {
@@ -15,7 +19,22 @@ namespace Server
 
         public string Token { get; set; }
         public ClientSession Session { get; set; }
-        public IRoom Room { get; set; }
+
+        public IRoom Room
+        {
+            get
+            {
+                if (GameState == GameState.Room)
+                    return EnteredRoom;
+
+                return GameRoom;
+            }
+        }
+
+        public Room EnteredRoom { get; set; }
+        public GameRoom GameRoom { get; set; }
+
+        // public IRoom Room { get; set; }
         private PlayerInfo _info = new PlayerInfo {PosInfo = new PositionInfo(), MoveDir = new PositionInfo()};
 
         public PlayerInfo Info
