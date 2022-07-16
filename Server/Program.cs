@@ -14,17 +14,29 @@ namespace Server
     public class Program
     {
         private static Listener _listener = new Listener();
-        private static List<Timer> _timers = new List<Timer>();
+        public static Dictionary<int, Timer> Timers = new Dictionary<int, Timer>();
 
         public static void TickRoom(GameRoom room, int tick = 100)
         {
             Timer timer = new Timer();
             timer.Interval = tick;
-            timer.Elapsed += (s, e) => room.Update();
             timer.AutoReset = true;
             timer.Enabled = true;
+            timer.Elapsed += (s, e) => { room.Update(); };
 
-            _timers.Add(timer);
+            Timers.Add(room.RoomId, timer);
+        }
+
+        public static void ClearTimer(int roomId)
+        {
+            Timer timer;
+            if (Timers.TryGetValue(roomId, out timer) == false)
+                return;
+
+            timer.Stop();
+            timer.Close();
+            timer.Dispose();
+            Timers.Remove(roomId);
         }
 
         static void Main(string[] args)

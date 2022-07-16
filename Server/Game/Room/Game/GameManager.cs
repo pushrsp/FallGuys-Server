@@ -25,6 +25,11 @@ namespace Server
             return room;
         }
 
+        public void Remove(int roomId)
+        {
+            _rooms.Remove(roomId);
+        }
+
         public GameRoom Find(int roomId)
         {
             lock (_lock)

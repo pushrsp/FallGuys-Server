@@ -43,6 +43,18 @@ namespace Server.Game
         private object _lock = new object();
         private Random _random = new Random();
 
+        public void HandleSpawn()
+        {
+            S_Spawn spawnPacket = new S_Spawn();
+            foreach (Player player in _players.Values)
+            {
+                player.GameState = GameState.Room;
+                player.ResetInfo();
+                player.PosInfo.PosX = _random.Next(0, 151);
+                spawnPacket.Players.Add(player.Info);
+            }
+        }
+
         public void HandleEnterRoom(Player player)
         {
             lock (_lock)
@@ -50,7 +62,7 @@ namespace Server.Game
                 {
                     player.EnteredRoom = this;
                     player.GameState = GameState.Room;
-                    _players.Add(player.ObjectId, player);
+                    _players.TryAdd(player.ObjectId, player);
                     PlayerCount = _players.Count;
                     player.ResetInfo();
                     player.PosInfo.PosX = _random.Next(0, 151);
@@ -169,8 +181,10 @@ namespace Server.Game
 
             lock (_lock)
             {
+                State = RoomState.Playing;
                 GameRoom gameRoom = GameManager.Instance.Add(stageId);
                 gameRoom.PlayerCount = _players.Count;
+                gameRoom.Idx = Idx;
                 S_StartGame startGamePacket = new S_StartGame();
                 startGamePacket.StageId = stageId;
 

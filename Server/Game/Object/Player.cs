@@ -101,7 +101,9 @@ namespace Server
             PosInfo.PosX = 0;
             PosInfo.PosY = 0;
             PosInfo.PosZ = 0;
-            PlayerSelect = 1;
+
+            if (PlayerSelect == 0)
+                PlayerSelect = 1;
         }
     }
 }

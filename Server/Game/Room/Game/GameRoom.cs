@@ -11,19 +11,33 @@ namespace Server
     public class GameRoom : IRoom
     {
         public int RoomId { get; set; }
+        public int Idx { get; set; }
         public int PlayerCount { get; set; }
         public Stage Stage { get; } = new Stage();
 
         private object _lock = new object();
         private Dictionary<string, Player> _players = new Dictionary<string, Player>();
+        private Dictionary<string, Player> _arrivedPlayers = new Dictionary<string, Player>();
         private Dictionary<int, Obstacle> _obstacles = new Dictionary<int, Obstacle>();
         private int _obstacleId = 1;
         private Random _random = new Random();
-        private Timer _timer = new Timer();
+        private Timer _timerStart = new Timer();
+        private Timer _timerEnd = new Timer();
 
         public void Init(int stageId)
         {
             Stage.LoadStage(stageId);
+        }
+
+        public void Clear()
+        {
+            Program.ClearTimer(RoomId);
+
+            _players.Clear();
+            _arrivedPlayers.Clear();
+            _obstacles.Clear();
+
+            GameManager.Instance.Remove(RoomId);
         }
 
         public void Add<T>(float speed, Vector3 pivot) where T : Obstacle, new()
@@ -52,21 +66,25 @@ namespace Server
 
         private int _counter = 4;
 
-        private void TimerTick(object o, ElapsedEventArgs e)
+        private void TimerStartTick(object o, ElapsedEventArgs e)
         {
-            S_StartCountDown startCountDownPacket = new S_StartCountDown();
-            startCountDownPacket.Counter = _counter;
-
-            Broadcast(startCountDownPacket);
-
-            if (_counter == 0)
+            if (_counter >= 0)
             {
-                _timer.Stop();
-                _timer.Close();
-            }
-            else if (_counter == 1)
-            {
-                Program.TickRoom(this, 100);
+                S_StartCountDown startCountDownPacket = new S_StartCountDown();
+                startCountDownPacket.Counter = _counter;
+
+                Broadcast(startCountDownPacket);
+
+                if (_counter == 0)
+                {
+                    _timerStart.Stop();
+                    _timerStart.Close();
+                    _timerStart.Dispose();
+                }
+                else if (_counter == 1)
+                {
+                    Program.TickRoom(this, 100);
+                }
             }
 
             _counter--;
@@ -74,9 +92,9 @@ namespace Server
 
         private void StartCount()
         {
-            _timer.Interval = 1000;
-            _timer.Elapsed += TimerTick;
-            _timer.Start();
+            _timerStart.Interval = 1000;
+            _timerStart.Elapsed += TimerStartTick;
+            _timerStart.Start();
         }
 
         public void HandleEnterRoom(Player player)
@@ -140,6 +158,42 @@ namespace Server
             }
         }
 
+        private bool _arrived;
+        private int _endCounter = 11;
+
+        private void TimerEndTick(object o, ElapsedEventArgs e)
+        {
+            if (_endCounter >= 0)
+            {
+                S_EndCountDown endCountDownPacket = new S_EndCountDown();
+                endCountDownPacket.Counter = _endCounter;
+
+                Broadcast(endCountDownPacket);
+
+                //TODO: 로비로 내보내기
+                if (_counter == 0)
+                {
+                    Clear();
+                    _timerEnd.Stop();
+                    _timerEnd.Close();
+                    _timerEnd.Dispose();
+                }
+            }
+
+            _endCounter--;
+        }
+
+        private void EndCount()
+        {
+            if (_arrived)
+                return;
+
+            _arrived = true;
+            _timerEnd.Interval = 1000;
+            _timerEnd.Elapsed += TimerEndTick;
+            _timerEnd.Start();
+        }
+
         public void HandleMove(Player player, C_Move movePacket)
         {
             if (player == null)
@@ -154,6 +208,20 @@ namespace Server
                 if (valid == '5')
                 {
                     HandleDie(player);
+                    return;
+                }
+                //도착
+                else if (valid == '3')
+                {
+                    if (_arrivedPlayers.TryAdd(player.ObjectId, player))
+                    {
+                        S_Arrive arrivePacket = new S_Arrive();
+                        arrivePacket.ObjectId = player.ObjectId;
+                        player.State = PlayerState.Idle;
+                        Broadcast(arrivePacket);
+                    }
+
+                    EndCount();
                     return;
                 }
 

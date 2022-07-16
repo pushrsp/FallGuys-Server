@@ -203,10 +203,10 @@ namespace Server.Game
 
         public Tuple<int, int, int> FindRespawn(PositionInfo posInfo, Player player)
         {
-            //위 왼쪽 아래 오른쪽 앞 뒤
+            //위 왼쪽 아래 오른쪽 뒤 뒤
             int[] deltaY = new int[6] {-1, 0, 1, 1, 0, 0};
             int[] deltaX = new int[6] {0, -1, 0, 1, 0, 0};
-            int[] deltaZ = new int[6] {0, 0, 0, 0, -1, 1};
+            int[] deltaZ = new int[6] {0, 0, 0, 0, 1, 1};
 
             Queue<Tuple<int, int, int>> q = new Queue<Tuple<int, int, int>>();
             q.Enqueue(ConvertPosToIndex(posInfo));
