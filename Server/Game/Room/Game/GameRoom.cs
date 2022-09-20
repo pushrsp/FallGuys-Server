@@ -8,7 +8,7 @@ using Server.Game.Object;
 
 namespace Server
 {
-    public class GameRoom : IRoom
+    public class GameRoom : BaseRoom
     {
         public int RoomId { get; set; }
         public int Idx { get; set; }
@@ -97,65 +97,65 @@ namespace Server
             _timerStart.Start();
         }
 
-        public void HandleEnterRoom(Player player)
+        public override void HandleEnterRoom(Player player)
         {
             if (player == null)
                 return;
 
-            lock (_lock)
+            // lock (_lock)
+            // {
+            player.GameRoom = this;
+            player.GameState = GameState.Game;
+            _players.Add(player.ObjectId, player);
+
+            if (_players.Count == PlayerCount)
+                StartCount();
+
+            Pos pos = Stage.FindStartPos();
             {
-                player.GameRoom = this;
-                player.GameState = GameState.Game;
-                _players.Add(player.ObjectId, player);
+                player.PosInfo.PosY = pos.Y;
+                player.PosInfo.PosZ = pos.Z;
+                player.PosInfo.PosX = pos.X;
+            }
 
-                if (_players.Count == PlayerCount)
-                    StartCount();
+            //Map
+            Stage.ApplyMove(player);
 
-                Pos pos = Stage.FindStartPos();
+            //본인 전송
+            {
+                S_EnterRoom enterPacket = new S_EnterRoom
+                    {Player = new PlayerInfo {PosInfo = new PositionInfo()}};
+                enterPacket.Player.MergeFrom(player.Info);
+                enterPacket.CanMove = false;
+                player.Session.Send(enterPacket);
+
+                //TODO: 장애물 플레이어 구분하기
+                S_Spawn spawnPacket = new S_Spawn();
+                foreach (Player p in _players.Values)
                 {
-                    player.PosInfo.PosY = pos.Y;
-                    player.PosInfo.PosZ = pos.Z;
-                    player.PosInfo.PosX = pos.X;
+                    if (p.ObjectId != player.ObjectId)
+                        spawnPacket.Players.Add(p.Info);
                 }
 
-                //Map
-                Stage.ApplyMove(player);
+                S_SpawnObstacle spawnObstacle = new S_SpawnObstacle();
+                foreach (Obstacle obs in _obstacles.Values)
+                    spawnObstacle.Obstacles.Add(new ObstacleInfo {ObstacleId = obs.Id, Type = obs.Type});
 
-                //본인 전송
+                player.Session.Send(spawnPacket);
+                player.Session.Send(spawnObstacle);
+            }
+
+            //타인 전송
+            {
+                S_Spawn spawnPacket = new S_Spawn();
+                spawnPacket.Players.Add(player.Info);
+                foreach (Player p in _players.Values)
                 {
-                    S_EnterRoom enterPacket = new S_EnterRoom
-                        {Player = new PlayerInfo {PosInfo = new PositionInfo()}};
-                    enterPacket.Player.MergeFrom(player.Info);
-                    enterPacket.CanMove = false;
-                    player.Session.Send(enterPacket);
-
-                    //TODO: 장애물 플레이어 구분하기
-                    S_Spawn spawnPacket = new S_Spawn();
-                    foreach (Player p in _players.Values)
-                    {
-                        if (p.ObjectId != player.ObjectId)
-                            spawnPacket.Players.Add(p.Info);
-                    }
-
-                    S_SpawnObstacle spawnObstacle = new S_SpawnObstacle();
-                    foreach (Obstacle obs in _obstacles.Values)
-                        spawnObstacle.Obstacles.Add(new ObstacleInfo {ObstacleId = obs.Id, Type = obs.Type});
-
-                    player.Session.Send(spawnPacket);
-                    player.Session.Send(spawnObstacle);
-                }
-
-                //타인 전송
-                {
-                    S_Spawn spawnPacket = new S_Spawn();
-                    spawnPacket.Players.Add(player.Info);
-                    foreach (Player p in _players.Values)
-                    {
-                        if (p.ObjectId != player.ObjectId)
-                            p.Session.Send(spawnPacket);
-                    }
+                    if (p.ObjectId != player.ObjectId)
+                        p.Session.Send(spawnPacket);
                 }
             }
+            // }
         }
 
         private bool _arrived;
@@ -194,49 +194,52 @@ namespace Server
             _timerEnd.Start();
         }
 
-        public void HandleMove(Player player, C_Move movePacket)
+        public override void HandleMove(Player player, C_Move movePacket)
         {
             if (player == null)
                 return;
 
-            lock (_lock)
+            // lock (_lock)
+            // {
+            PositionInfo dest = movePacket.PosInfo;
+            PositionInfo dir = movePacket.MoveDir;
+
+            char valid = Stage.CanGo(dest);
+            if (valid == '5')
             {
-                PositionInfo dest = movePacket.PosInfo;
-                PositionInfo dir = movePacket.MoveDir;
-
-                char valid = Stage.CanGo(dest);
-                if (valid == '5')
-                {
-                    HandleDie(player);
-                    return;
-                }
-                //도착
-                else if (valid == '3')
-                {
-                    if (_arrivedPlayers.TryAdd(player.ObjectId, player))
-                    {
-                        S_Arrive arrivePacket = new S_Arrive();
-                        arrivePacket.ObjectId = player.ObjectId;
-                        player.State = PlayerState.Idle;
-                        Broadcast(arrivePacket);
-                    }
-
-                    EndCount();
-                    return;
-                }
-
-                Stage.ApplyMove(player, dest);
-                player.PosInfo = dest;
-                player.MoveDir = dir;
-
-                S_Move resMovePacket = new S_Move {MoveDir = new PositionInfo(), DestPos = new PositionInfo()};
-                resMovePacket.ObjectId = player.ObjectId;
-                resMovePacket.MoveDir = dir;
-                resMovePacket.DestPos = dest;
-                resMovePacket.State = movePacket.State;
-
-                Broadcast(resMovePacket);
+                Push<Player>(HandleDie, player);
+                // HandleDie(player);
+                return;
             }
+            //도착
+            else if (valid == '3')
+            {
+                if (_arrivedPlayers.TryAdd(player.ObjectId, player))
+                {
+                    S_Arrive arrivePacket = new S_Arrive();
+                    arrivePacket.ObjectId = player.ObjectId;
+                    player.State = PlayerState.Idle;
+                    Push<IMessage>(Broadcast, arrivePacket);
+                    // Broadcast(arrivePacket);
+                }
+
+                EndCount();
+                return;
+            }
+
+            Stage.ApplyMove(player, dest);
+            player.PosInfo = dest;
+            player.MoveDir = dir;
+
+            S_Move resMovePacket = new S_Move {MoveDir = new PositionInfo(), DestPos = new PositionInfo()};
+            resMovePacket.ObjectId = player.ObjectId;
+            resMovePacket.MoveDir = dir;
+            resMovePacket.DestPos = dest;
+            resMovePacket.State = movePacket.State;
+
+            Push<IMessage>(Broadcast, resMovePacket);
+            // Broadcast(resMovePacket);
+            // }
         }
 
         public void HandleDie(Player player)
@@ -244,8 +247,10 @@ namespace Server
             S_Die diePacket = new S_Die();
             diePacket.ObjectId = player.ObjectId;
 
-            Broadcast(diePacket);
-            HandleRespawn(player.PosInfo, player);
+            Push<IMessage>(Broadcast, diePacket);
+            // Broadcast(diePacket);
+            Push<PositionInfo, Player>(HandleRespawn, player.PosInfo, player);
+            // HandleRespawn(player.PosInfo, player);
         }
 
         private void HandleRespawn(PositionInfo dest, Player player)
@@ -287,58 +292,59 @@ namespace Server
             }
         }
 
-        public void HandleJump(Player player)
+        public override void HandleJump(Player player)
         {
             if (player == null)
                 return;
 
-            lock (_lock)
-            {
-                S_Jump resJumpPacket = new S_Jump();
-                resJumpPacket.ObjectId = player.ObjectId;
+            // lock (_lock)
+            // {
+            S_Jump resJumpPacket = new S_Jump();
+            resJumpPacket.ObjectId = player.ObjectId;
 
-                Broadcast(resJumpPacket);
-            }
+            Push<IMessage>(Broadcast, resJumpPacket);
+            // Broadcast(resJumpPacket);
+            // }
         }
 
         public void LeaveGame(string objectId)
         {
-            lock (_lock)
+            // lock (_lock)
+            // {
+            Player player;
+            if (_players.TryGetValue(objectId, out player) == false)
+                return;
+
+            Stage.ApplyLeave(player.PosInfo);
+            player.GameRoom = null;
+
+            //본인 전송
             {
-                Player player;
-                if (_players.TryGetValue(objectId, out player) == false)
-                    return;
+                S_LeaveGame leaveGame = new S_LeaveGame();
+                player.Session.Send(leaveGame);
+            }
 
-                Stage.ApplyLeave(player.PosInfo);
-                player.GameRoom = null;
+            //타인 전송
+            {
+                S_Despawn despawn = new S_Despawn();
+                despawn.ObjectId.Add(player.ObjectId);
 
-                //본인 전송
+                foreach (Player p in _players.Values)
                 {
-                    S_LeaveGame leaveGame = new S_LeaveGame();
-                    player.Session.Send(leaveGame);
-                }
-
-                //타인 전송
-                {
-                    S_Despawn despawn = new S_Despawn();
-                    despawn.ObjectId.Add(player.ObjectId);
-
-                    foreach (Player p in _players.Values)
-                    {
-                        if (p.ObjectId != objectId)
-                            p.Session.Send(despawn);
-                    }
+                    if (p.ObjectId != objectId)
+                        p.Session.Send(despawn);
                 }
             }
+            // }
         }
 
-        public void Broadcast(IMessage packet)
+        public override void Broadcast(IMessage packet)
         {
-            lock (_lock)
-            {
-                foreach (Player p in _players.Values)
-                    p.Session.Send(packet);
-            }
+            // lock (_lock)
+            // {
+            foreach (Player p in _players.Values)
+                p.Session.Send(packet);
+            // }
         }
     }
 }

@@ -5,7 +5,7 @@ using Google.Protobuf.Protocol;
 
 namespace Server.Game
 {
-    public class Room : IRoom
+    public class Room : BaseRoom
     {
         public RoomInfo Info { get; } = new RoomInfo();
 
@@ -40,7 +40,6 @@ namespace Server.Game
         }
 
         private Dictionary<string, Player> _players = new Dictionary<string, Player>();
-        private object _lock = new object();
         private Random _random = new Random();
 
         public void HandleSpawn()
@@ -55,123 +54,123 @@ namespace Server.Game
             }
         }
 
-        public void HandleEnterRoom(Player player)
+        public override void HandleEnterRoom(Player player)
         {
-            lock (_lock)
+            // lock (_lock)
+            // {
             {
+                player.EnteredRoom = this;
+                player.GameState = GameState.Room;
+                _players.TryAdd(player.ObjectId, player);
+                PlayerCount = _players.Count;
+                player.ResetInfo();
+                player.PosInfo.PosX = _random.Next(0, 151);
+            }
+
+            RoomManager.Instance.RemovePlayer(player.ObjectId);
+
+            //방 정보 변경 전송
+            {
+                S_ChangeRoom changeRoomPacket = new S_ChangeRoom {Room = new RoomInfo()};
+                changeRoomPacket.Room.MergeFrom(Info);
+                RoomManager.Instance.HandleChangeRoom(changeRoomPacket);
+            }
+
+            //본인 전송
+            {
+                S_EnterRoom enterRoomPacket = new S_EnterRoom {Player = new PlayerInfo()};
+                enterRoomPacket.Player.MergeFrom(player.Info);
+                enterRoomPacket.CanMove = true;
+
+                player.Session.Send(enterRoomPacket);
+
+                S_Spawn spawnPacket = new S_Spawn();
+                foreach (Player p in _players.Values)
                 {
-                    player.EnteredRoom = this;
-                    player.GameState = GameState.Room;
-                    _players.TryAdd(player.ObjectId, player);
-                    PlayerCount = _players.Count;
-                    player.ResetInfo();
-                    player.PosInfo.PosX = _random.Next(0, 151);
+                    if (p.ObjectId == player.ObjectId)
+                        continue;
+
+                    spawnPacket.Players.Add(p.Info);
                 }
 
-                RoomManager.Instance.RemovePlayer(player.ObjectId);
+                player.Session.Send(spawnPacket);
+            }
 
-                //방 정보 변경 전송
+            //타인 전송
+            {
+                S_Spawn spawnPacket = new S_Spawn();
+                spawnPacket.Players.Add(player.Info);
+
+                foreach (Player p in _players.Values)
                 {
-                    S_ChangeRoom changeRoomPacket = new S_ChangeRoom {Room = new RoomInfo()};
-                    changeRoomPacket.Room.MergeFrom(Info);
-                    RoomManager.Instance.HandleChangeRoom(changeRoomPacket);
-                }
+                    if (p.ObjectId == player.ObjectId)
+                        continue;
 
-                //본인 전송
-                {
-                    S_EnterRoom enterRoomPacket = new S_EnterRoom {Player = new PlayerInfo()};
-                    enterRoomPacket.Player.MergeFrom(player.Info);
-                    enterRoomPacket.CanMove = true;
-
-                    player.Session.Send(enterRoomPacket);
-
-                    S_Spawn spawnPacket = new S_Spawn();
-                    foreach (Player p in _players.Values)
-                    {
-                        if (p.ObjectId == player.ObjectId)
-                            continue;
-
-                        spawnPacket.Players.Add(p.Info);
-                    }
-
-                    player.Session.Send(spawnPacket);
-                }
-
-                //타인 전송
-                {
-                    S_Spawn spawnPacket = new S_Spawn();
-                    spawnPacket.Players.Add(player.Info);
-
-                    foreach (Player p in _players.Values)
-                    {
-                        if (p.ObjectId == player.ObjectId)
-                            continue;
-
-                        p.Session.Send(spawnPacket);
-                    }
+                    p.Session.Send(spawnPacket);
                 }
             }
+            // }
         }
 
         public void HandleChangePlayer(Player player, C_ChangePlayer changePlayerPacket)
         {
             player.PlayerSelect = changePlayerPacket.PlayerSelect;
 
-            lock (_lock)
+            // lock (_lock)
+            // {
+            // 디스폰
             {
-                // 디스폰
-                {
-                    S_Despawn despawnPacket = new S_Despawn();
-                    despawnPacket.ObjectId.Add(player.ObjectId);
+                S_Despawn despawnPacket = new S_Despawn();
+                despawnPacket.ObjectId.Add(player.ObjectId);
 
-                    Broadcast(despawnPacket);
-                }
-
-                //리스폰
-                {
-                    S_Spawn spawnPacket = new S_Spawn();
-                    spawnPacket.Players.Add(player.Info);
-
-                    Broadcast(spawnPacket);
-                }
+                Broadcast(despawnPacket);
             }
+
+            //리스폰
+            {
+                S_Spawn spawnPacket = new S_Spawn();
+                spawnPacket.Players.Add(player.Info);
+
+                Broadcast(spawnPacket);
+            }
+            // }
         }
 
-        public void HandleMove(Player player, C_Move movePacket)
+        public override void HandleMove(Player player, C_Move movePacket)
         {
             if (player == null)
                 return;
 
-            lock (_lock)
-            {
-                PositionInfo dest = movePacket.PosInfo;
-                PositionInfo dir = movePacket.MoveDir;
+            // lock (_lock)
+            // {
+            PositionInfo dest = movePacket.PosInfo;
+            PositionInfo dir = movePacket.MoveDir;
 
-                player.PosInfo = dest;
-                player.MoveDir = dir;
+            player.PosInfo = dest;
+            player.MoveDir = dir;
 
-                S_Move resMovePacket = new S_Move {MoveDir = new PositionInfo(), DestPos = new PositionInfo()};
-                resMovePacket.ObjectId = player.ObjectId;
-                resMovePacket.MoveDir = dir;
-                resMovePacket.DestPos = dest;
-                resMovePacket.State = movePacket.State;
+            S_Move resMovePacket = new S_Move {MoveDir = new PositionInfo(), DestPos = new PositionInfo()};
+            resMovePacket.ObjectId = player.ObjectId;
+            resMovePacket.MoveDir = dir;
+            resMovePacket.DestPos = dest;
+            resMovePacket.State = movePacket.State;
 
-                Broadcast(resMovePacket);
-            }
+            Broadcast(resMovePacket);
+            // }
         }
 
-        public void HandleJump(Player player)
+        public override void HandleJump(Player player)
         {
             if (player == null)
                 return;
 
-            lock (_lock)
-            {
-                S_Jump resJumpPacket = new S_Jump();
-                resJumpPacket.ObjectId = player.ObjectId;
+            // lock (_lock)
+            // {
+            S_Jump resJumpPacket = new S_Jump();
+            resJumpPacket.ObjectId = player.ObjectId;
 
-                Broadcast(resJumpPacket);
-            }
+            Broadcast(resJumpPacket);
+            // }
         }
 
         public void HandleStartGame(Player player, int stageId)
@@ -179,31 +178,31 @@ namespace Server.Game
             if (player.ObjectId != OwnerId)
                 return;
 
-            lock (_lock)
-            {
-                State = RoomState.Playing;
-                GameRoom gameRoom = GameManager.Instance.Add(stageId);
-                gameRoom.PlayerCount = _players.Count;
-                gameRoom.Idx = Idx;
-                S_StartGame startGamePacket = new S_StartGame();
-                startGamePacket.StageId = stageId;
+            // lock (_lock)
+            // {
+            State = RoomState.Playing;
+            GameRoom gameRoom = GameManager.Instance.Add(stageId);
+            gameRoom.PlayerCount = _players.Count;
+            gameRoom.Idx = Idx;
+            S_StartGame startGamePacket = new S_StartGame();
+            startGamePacket.StageId = stageId;
 
-                foreach (Player p in _players.Values)
-                {
-                    p.GameRoom = gameRoom;
-                    p.GameState = GameState.Game;
-                    p.Session.Send(startGamePacket);
-                }
+            foreach (Player p in _players.Values)
+            {
+                p.GameRoom = gameRoom;
+                p.GameState = GameState.Game;
+                p.Session.Send(startGamePacket);
             }
+            // }
         }
 
-        public void Broadcast(IMessage packet)
+        public override void Broadcast(IMessage packet)
         {
-            lock (_lock)
-            {
-                foreach (Player p in _players.Values)
-                    p.Session.Send(packet);
-            }
+            // lock (_lock)
+            // {
+            foreach (Player p in _players.Values)
+                p.Session.Send(packet);
+            // }
         }
     }
 }

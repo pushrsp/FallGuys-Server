@@ -20,7 +20,7 @@ namespace Server
         public string Token { get; set; }
         public ClientSession Session { get; set; }
 
-        public IRoom Room
+        public BaseRoom Room
         {
             get
             {

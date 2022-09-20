@@ -22,7 +22,7 @@ namespace Server
             timer.Interval = tick;
             timer.AutoReset = true;
             timer.Enabled = true;
-            timer.Elapsed += (s, e) => { room.Update(); };
+            timer.Elapsed += (s, e) => { room.Push(room.Update); };
 
             Timers.Add(room.RoomId, timer);
         }

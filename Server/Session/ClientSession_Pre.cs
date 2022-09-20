@@ -52,7 +52,8 @@ namespace Server
 
         public void HandleEnterGame()
         {
-            RoomManager.Instance.EnterRoom(Me);
+            RoomManager.Instance.Push<Player>(RoomManager.Instance.EnterRoom, Me);
+            // RoomManager.Instance.EnterRoom(Me);
         }
     }
 }

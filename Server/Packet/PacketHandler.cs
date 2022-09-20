@@ -20,11 +20,12 @@ public class PacketHandler
         if (player == null)
             return;
 
-        IRoom room = player.Room;
+        BaseRoom room = player.Room;
         if (room == null)
             return;
 
-        room.HandleMove(player, movePacket);
+        room.Push<Player, C_Move>(room.HandleMove, player, movePacket);
+        // room.HandleMove(player, movePacket);
     }
 
     public static void C_JumpHandler(PacketSession session, IMessage packet)
@@ -35,11 +36,12 @@ public class PacketHandler
         if (player == null)
             return;
 
-        IRoom room = player.Room;
+        BaseRoom room = player.Room;
         if (room == null)
             return;
 
-        room.HandleJump(player);
+        room.Push<Player>(room.HandleJump, player);
+        // room.HandleJump(player);
     }
 
     public static void C_DieHandler(PacketSession session, IMessage packet)
@@ -54,7 +56,8 @@ public class PacketHandler
         if (room == null)
             return;
 
-        room.HandleDie(player);
+        room.Push<Player>(room.HandleDie, player);
+        // room.HandleDie(player);
     }
 
     public static void C_LoginHandler(PacketSession session, IMessage packet)
@@ -77,7 +80,9 @@ public class PacketHandler
         C_MakeRoom makeRoomPacket = packet as C_MakeRoom;
         ClientSession clientSession = session as ClientSession;
 
-        RoomManager.Instance.HandleMakeRoom(makeRoomPacket, clientSession.Me);
+        RoomManager.Instance.Push<C_MakeRoom, Player>(RoomManager.Instance.HandleMakeRoom, makeRoomPacket,
+            clientSession.Me);
+        // RoomManager.Instance.HandleMakeRoom(makeRoomPacket, clientSession.Me);
     }
 
     public static void C_EnterRoomHandler(PacketSession session, IMessage packet)
@@ -89,8 +94,10 @@ public class PacketHandler
         if (player == null)
             return;
 
-        IRoom room = RoomManager.Instance.GetRoom(enterRoomPacket.RoomIdx);
-        room.HandleEnterRoom(player);
+        BaseRoom room = RoomManager.Instance.GetRoom(enterRoomPacket.RoomIdx);
+
+        room.Push<Player>(room.HandleEnterRoom, player);
+        // room.HandleEnterRoom(player);
     }
 
     public static void C_ChangePlayerHandler(PacketSession session, IMessage packet)
@@ -106,7 +113,8 @@ public class PacketHandler
         if (room == null)
             return;
 
-        room.HandleChangePlayer(player, changePlayerPacket);
+        room.Push<Player, C_ChangePlayer>(room.HandleChangePlayer, player, changePlayerPacket);
+        // room.HandleChangePlayer(player, changePlayerPacket);
     }
 
     public static void C_StartGameHandler(PacketSession session, IMessage packet)
@@ -122,7 +130,8 @@ public class PacketHandler
         if (room == null)
             return;
 
-        room.HandleStartGame(player, startGamePacket.StageId);
+        room.Push<Player, int>(room.HandleStartGame, player, startGamePacket.StageId);
+        // room.HandleStartGame(player, startGamePacket.StageId);
     }
 
     public static void C_EnterGameRoomHandler(PacketSession session, IMessage packet)
@@ -133,10 +142,11 @@ public class PacketHandler
         if (player == null)
             return;
 
-        IRoom room = player.Room;
+        BaseRoom room = player.Room;
         if (room == null)
             return;
 
-        room.HandleEnterRoom(player);
+        room.Push<Player>(room.HandleEnterRoom, player);
+        // room.HandleEnterRoom(player);
     }
 }
