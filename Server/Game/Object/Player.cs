@@ -34,7 +34,6 @@ namespace Server
         public Room EnteredRoom { get; set; }
         public GameRoom GameRoom { get; set; }
 
-        // public IRoom Room { get; set; }
         private PlayerInfo _info = new PlayerInfo {PosInfo = new PositionInfo(), MoveDir = new PositionInfo()};
 
         public PlayerInfo Info

@@ -15,7 +15,6 @@ namespace Server
         public int PlayerCount { get; set; }
         public Stage Stage { get; } = new Stage();
 
-        private object _lock = new object();
         private Dictionary<string, Player> _players = new Dictionary<string, Player>();
         private Dictionary<string, Player> _arrivedPlayers = new Dictionary<string, Player>();
         private Dictionary<int, Obstacle> _obstacles = new Dictionary<int, Obstacle>();
@@ -29,7 +28,7 @@ namespace Server
             Stage.LoadStage(stageId);
         }
 
-        public void Clear()
+        private void Clear()
         {
             Program.ClearTimer(RoomId);
 
@@ -40,6 +39,7 @@ namespace Server
             GameManager.Instance.Remove(RoomId);
         }
 
+        //장애물 추가
         public void Add<T>(float speed, Vector3 pivot) where T : Obstacle, new()
         {
             T obs = new T();
@@ -102,8 +102,6 @@ namespace Server
             if (player == null)
                 return;
 
-            // lock (_lock)
-            // {
             player.GameRoom = this;
             player.GameState = GameState.Game;
             _players.Add(player.ObjectId, player);
@@ -129,7 +127,6 @@ namespace Server
                 enterPacket.CanMove = false;
                 player.Session.Send(enterPacket);
 
-                //TODO: 장애물 플레이어 구분하기
                 S_Spawn spawnPacket = new S_Spawn();
                 foreach (Player p in _players.Values)
                 {
@@ -155,7 +152,6 @@ namespace Server
                         p.Session.Send(spawnPacket);
                 }
             }
-            // }
         }
 
         private bool _arrived;
@@ -170,7 +166,6 @@ namespace Server
 
                 Broadcast(endCountDownPacket);
 
-                //TODO: 로비로 내보내기
                 if (_counter == 0)
                 {
                     Clear();
@@ -199,8 +194,6 @@ namespace Server
             if (player == null)
                 return;
 
-            // lock (_lock)
-            // {
             PositionInfo dest = movePacket.PosInfo;
             PositionInfo dir = movePacket.MoveDir;
 
@@ -208,11 +201,10 @@ namespace Server
             if (valid == '5')
             {
                 Push<Player>(HandleDie, player);
-                // HandleDie(player);
                 return;
             }
-            //도착
-            else if (valid == '3')
+
+            if (valid == '3') //도착
             {
                 if (_arrivedPlayers.TryAdd(player.ObjectId, player))
                 {
@@ -220,7 +212,6 @@ namespace Server
                     arrivePacket.ObjectId = player.ObjectId;
                     player.State = PlayerState.Idle;
                     Push<IMessage>(Broadcast, arrivePacket);
-                    // Broadcast(arrivePacket);
                 }
 
                 EndCount();
@@ -238,8 +229,6 @@ namespace Server
             resMovePacket.State = movePacket.State;
 
             Push<IMessage>(Broadcast, resMovePacket);
-            // Broadcast(resMovePacket);
-            // }
         }
 
         public void HandleDie(Player player)
@@ -248,9 +237,7 @@ namespace Server
             diePacket.ObjectId = player.ObjectId;
 
             Push<IMessage>(Broadcast, diePacket);
-            // Broadcast(diePacket);
             Push<PositionInfo, Player>(HandleRespawn, player.PosInfo, player);
-            // HandleRespawn(player.PosInfo, player);
         }
 
         private void HandleRespawn(PositionInfo dest, Player player)
@@ -297,20 +284,14 @@ namespace Server
             if (player == null)
                 return;
 
-            // lock (_lock)
-            // {
             S_Jump resJumpPacket = new S_Jump();
             resJumpPacket.ObjectId = player.ObjectId;
 
             Push<IMessage>(Broadcast, resJumpPacket);
-            // Broadcast(resJumpPacket);
-            // }
         }
 
         public void LeaveGame(string objectId)
         {
-            // lock (_lock)
-            // {
             Player player;
             if (_players.TryGetValue(objectId, out player) == false)
                 return;
@@ -335,16 +316,12 @@ namespace Server
                         p.Session.Send(despawn);
                 }
             }
-            // }
         }
 
         public override void Broadcast(IMessage packet)
         {
-            // lock (_lock)
-            // {
             foreach (Player p in _players.Values)
                 p.Session.Send(packet);
-            // }
         }
     }
 }

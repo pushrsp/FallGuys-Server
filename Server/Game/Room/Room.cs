@@ -56,8 +56,6 @@ namespace Server.Game
 
         public override void HandleEnterRoom(Player player)
         {
-            // lock (_lock)
-            // {
             {
                 player.EnteredRoom = this;
                 player.GameState = GameState.Room;
@@ -109,15 +107,12 @@ namespace Server.Game
                     p.Session.Send(spawnPacket);
                 }
             }
-            // }
         }
 
         public void HandleChangePlayer(Player player, C_ChangePlayer changePlayerPacket)
         {
             player.PlayerSelect = changePlayerPacket.PlayerSelect;
 
-            // lock (_lock)
-            // {
             // 디스폰
             {
                 S_Despawn despawnPacket = new S_Despawn();
@@ -133,7 +128,6 @@ namespace Server.Game
 
                 Broadcast(spawnPacket);
             }
-            // }
         }
 
         public override void HandleMove(Player player, C_Move movePacket)
@@ -141,8 +135,6 @@ namespace Server.Game
             if (player == null)
                 return;
 
-            // lock (_lock)
-            // {
             PositionInfo dest = movePacket.PosInfo;
             PositionInfo dir = movePacket.MoveDir;
 
@@ -156,7 +148,6 @@ namespace Server.Game
             resMovePacket.State = movePacket.State;
 
             Broadcast(resMovePacket);
-            // }
         }
 
         public override void HandleJump(Player player)
@@ -164,13 +155,10 @@ namespace Server.Game
             if (player == null)
                 return;
 
-            // lock (_lock)
-            // {
             S_Jump resJumpPacket = new S_Jump();
             resJumpPacket.ObjectId = player.ObjectId;
 
             Broadcast(resJumpPacket);
-            // }
         }
 
         public void HandleStartGame(Player player, int stageId)
@@ -178,8 +166,6 @@ namespace Server.Game
             if (player.ObjectId != OwnerId)
                 return;
 
-            // lock (_lock)
-            // {
             State = RoomState.Playing;
             GameRoom gameRoom = GameManager.Instance.Add(stageId);
             gameRoom.PlayerCount = _players.Count;
@@ -193,16 +179,12 @@ namespace Server.Game
                 p.GameState = GameState.Game;
                 p.Session.Send(startGamePacket);
             }
-            // }
         }
 
         public override void Broadcast(IMessage packet)
         {
-            // lock (_lock)
-            // {
             foreach (Player p in _players.Values)
                 p.Session.Send(packet);
-            // }
         }
     }
 }
