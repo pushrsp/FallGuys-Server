@@ -15,7 +15,6 @@ namespace Server
         public int PlayerCount { get; set; }
         public Stage Stage { get; } = new Stage();
 
-        private Dictionary<string, Player> _players = new Dictionary<string, Player>();
         private Dictionary<string, Player> _arrivedPlayers = new Dictionary<string, Player>();
         private Dictionary<int, Obstacle> _obstacles = new Dictionary<int, Obstacle>();
         private int _obstacleId = 1;
@@ -146,11 +145,8 @@ namespace Server
             {
                 S_Spawn spawnPacket = new S_Spawn();
                 spawnPacket.Players.Add(player.Info);
-                foreach (Player p in _players.Values)
-                {
-                    if (p.ObjectId != player.ObjectId)
-                        p.Session.Send(spawnPacket);
-                }
+
+                Push<IMessage, string>(Broadcast, spawnPacket, player.ObjectId);
             }
         }
 
@@ -271,11 +267,7 @@ namespace Server
                 S_Spawn spawnPacket = new S_Spawn();
                 spawnPacket.Players.Add(player.Info);
 
-                foreach (Player p in _players.Values)
-                {
-                    if (p.ObjectId != player.ObjectId)
-                        p.Session.Send(spawnPacket);
-                }
+                Push<IMessage, string>(Broadcast, spawnPacket, player.ObjectId);
             }
         }
 
@@ -310,18 +302,8 @@ namespace Server
                 S_Despawn despawn = new S_Despawn();
                 despawn.ObjectId.Add(player.ObjectId);
 
-                foreach (Player p in _players.Values)
-                {
-                    if (p.ObjectId != objectId)
-                        p.Session.Send(despawn);
-                }
+                Push<IMessage, string>(Broadcast, despawn, objectId);
             }
-        }
-
-        public override void Broadcast(IMessage packet)
-        {
-            foreach (Player p in _players.Values)
-                p.Session.Send(packet);
         }
     }
 }

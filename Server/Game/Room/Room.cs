@@ -39,7 +39,6 @@ namespace Server.Game
             set { Info.PlayerCount = value; }
         }
 
-        private Dictionary<string, Player> _players = new Dictionary<string, Player>();
         private Random _random = new Random();
 
         public void HandleSpawn()
@@ -179,12 +178,6 @@ namespace Server.Game
                 p.GameState = GameState.Game;
                 p.Session.Send(startGamePacket);
             }
-        }
-
-        public override void Broadcast(IMessage packet)
-        {
-            foreach (Player p in _players.Values)
-                p.Session.Send(packet);
         }
     }
 }
