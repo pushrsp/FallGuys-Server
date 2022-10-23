@@ -1,5 +1,3 @@
-[소스코드 일부 링크](https://github.com/pushrsp/FallGuys-Server/blob/main/Server/Game/Room/Game/GameRoom.cs)
-
 [영상 결과물 링크](https://www.youtube.com/watch?v=8t7Twj8SpPI&ab_channel=ddggggd)
 
 ### Dispatcher 적용 전 CPU 사용량
